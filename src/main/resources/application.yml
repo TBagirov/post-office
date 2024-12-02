@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: post-office
+
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/post-office
+    username: postgres
+    password: ajlksdhxfkjlahsdfjk
+    driver-class-name: org.postgresql.Driver
+
+
+
+server:
+  port: 8080
+
