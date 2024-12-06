@@ -13,7 +13,7 @@ services:
       - "5432:5432"
 
     volumes:
-      - /post_office_db:/var/lib/postgresql/data
+      - post_office_db:/var/lib/postgresql/data
 
 volumes:
-  db: null
+  post_office_db:
