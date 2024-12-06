@@ -1,5 +1,6 @@
 package org.bagirov.postoffice.service
 
+
 import org.bagirov.postoffice.dto.response.ReportResponse.ReportPublicationResponse
 import org.bagirov.postoffice.dto.response.ReportResponse.ReportSubscriberResponse
 import org.bagirov.postoffice.dto.response.ReportResponse.ReportSubscriptionResponse
@@ -41,7 +42,7 @@ class ReportService (
 
             report.add(ReportPublicationResponse(
                 title = pub.title,
-                type = pub.publicationType.type,
+                type = pub.publicationType!!.type,
                 price = pub.price,
                 countSubscriber = pub.subscriptions!!.count()
             ))
@@ -59,7 +60,7 @@ class ReportService (
             if(sub.subscriber!!.id  == subscriberId)
                 report.add(ReportSubscriptionResponse(
                     title = sub.publication!!.title,
-                    type = sub.publication!!.publicationType.type,
+                    type = sub.publication!!.publicationType!!.type,
                     startDate = sub.startDate,
                     endDate = endDate,
                     price = sub.publication!!.price

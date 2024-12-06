@@ -9,7 +9,7 @@ data class SubscriberResponse (
     val patronymic: String,
     val building: String,
     val subAddress: String?,
-    val street: String,
-    val regionName: String,
-    val postmanName: String
+    val street: String?,
+    val regionName: String?,
+    val postmanName: String?
 )

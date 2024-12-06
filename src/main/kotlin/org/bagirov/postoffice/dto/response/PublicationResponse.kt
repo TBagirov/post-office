@@ -6,7 +6,7 @@ data class PublicationResponse (
     val id: UUID,
     val index: String,
     val title: String,
-    val publicationType: String,
+    val publicationType: String?,
     val price: Int
 
 )

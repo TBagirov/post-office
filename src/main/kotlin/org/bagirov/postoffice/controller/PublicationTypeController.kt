@@ -2,6 +2,8 @@ package org.bagirov.postoffice.controller
 
 import org.bagirov.postoffice.dto.request.PublicationTypeRequest
 import org.bagirov.postoffice.dto.response.PublicationTypeResponse
+import org.bagirov.postoffice.entity.PublicationEntity
+import org.bagirov.postoffice.entity.PublicationTypeEntity
 import org.bagirov.postoffice.service.PublicationTypeService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -24,4 +26,15 @@ class PublicationTypeController(
     fun save(@RequestBody publicationType: PublicationTypeRequest): ResponseEntity<PublicationTypeResponse> {
         return ResponseEntity.ok(publicationTypeService.save(publicationType))
     }
+
+    @PutMapping()
+    fun update(@RequestBody publicationType: PublicationTypeEntity): ResponseEntity<PublicationTypeResponse> {
+        return ResponseEntity.ok(publicationTypeService.update(publicationType))
+    }
+
+    @DeleteMapping()
+    fun delete(@RequestParam id: UUID): ResponseEntity<PublicationTypeEntity> {
+        return ResponseEntity.ok(publicationTypeService.delete(id))
+    }
+
 }

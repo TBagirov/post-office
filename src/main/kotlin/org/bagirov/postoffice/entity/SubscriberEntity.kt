@@ -21,11 +21,11 @@ data class SubscriberEntity(
 
     @ManyToOne
     @JoinColumn(name="district_id", referencedColumnName = "id")
-    var district: DistrictEntity,
+    var district: DistrictEntity?,
 
     @ManyToOne
     @JoinColumn(name="street_id", referencedColumnName = "id")
-    var street: StreetEntity,
+    var street: StreetEntity?,
 
     @Column(name="building", nullable = false)
     var building: String,

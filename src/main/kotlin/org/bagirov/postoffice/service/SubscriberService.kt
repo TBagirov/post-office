@@ -39,7 +39,7 @@ class SubscriberService(
 
         // TODO: если улицы не существует и она добавилась и попала в район которому не назначен почтальон,
         //  т.е. этого региона нет в district, то летит ошибка 500
-        val districtRes: DistrictEntity = districtRepository.findByRegionName(street.regionName).orElse(null).random()
+        val districtRes: DistrictEntity = districtRepository.findByRegionName(street.regionName!!).orElse(null).random()
 
         val streetEntity: StreetEntity = StreetEntity(
             id = street.id,

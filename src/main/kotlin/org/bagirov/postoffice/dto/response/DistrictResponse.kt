@@ -4,6 +4,6 @@ import java.util.*
 
 data class DistrictResponse (
     val id: UUID,
-    val postmanName: String,
-    val regionName: String
+    val postmanName: String?,
+    val regionName: String?
 )
