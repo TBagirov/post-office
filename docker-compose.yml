@@ -17,3 +17,4 @@ services:
 
 volumes:
   post_office_db:
+  
