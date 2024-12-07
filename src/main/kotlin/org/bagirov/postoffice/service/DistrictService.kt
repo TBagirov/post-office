@@ -2,6 +2,7 @@ package org.bagirov.postoffice.service
 
 
 import org.bagirov.postoffice.dto.request.DistrictRequest
+import org.bagirov.postoffice.dto.request.update.DistrictUpdateRequest
 import org.bagirov.postoffice.dto.response.DistrictResponse
 import org.bagirov.postoffice.entity.DistrictEntity
 import org.bagirov.postoffice.entity.PostmanEntity
@@ -35,11 +36,54 @@ class DistrictService(
         district.region = tempRegion
         district.postman = tempPostman
 
-        val districtSave: DistrictEntity = districtRepository.save(district)
+        val districtSave: DistrictEntity = districtRepository.saveDistrict(
+            id = district.id ?: UUID.randomUUID(),
+            regionId = district.region!!.id,
+            postmanId = district.postman!!.id
+        )
 
         tempRegion?.districts?.add(districtSave)
         tempPostman?.districts?.add(districtSave)
 
         return districtSave.convertToResponseDto()
     }
+
+    @Transactional
+    fun update(district: DistrictUpdateRequest): DistrictResponse {
+
+        // Найти существующее отношение почтальонов к районам
+        val existingDistrict = districtRepository.findById(district.id!!)
+            .orElseThrow { IllegalArgumentException("District with ID ${district.id} not found") }
+
+        val tempRegion: RegionEntity? = regionRepository.findById(district.regionId).orElse(null)
+        val tempPostman: PostmanEntity? = postmanRepository.findById(district.postmanId).orElse(null)
+
+
+        // Выполнить обновление в базе данных
+        val districtUpdate = districtRepository.updateDistrict(
+            id = district.id,
+            regionId = tempRegion!!.id,
+            postmanId = tempPostman!!.id
+        )
+
+        // Обновить связи
+        existingDistrict.region = tempRegion
+        existingDistrict.postman = tempPostman
+
+        return districtUpdate.convertToResponseDto()
+    }
+
+    @Transactional
+    fun delete(id: UUID): DistrictResponse {
+        // Найти существующее отношение почтальонов к районам
+        val existingDistrict = districtRepository.findById(id)
+            .orElseThrow { IllegalArgumentException("District with ID $id not found") }
+
+        // Удалить отношение почтальонов к районам
+        districtRepository.deleteById(id)
+
+        // Преобразовать удалённое отношение почтальонов к районам в DTO и вернуть
+        return existingDistrict.convertToResponseDto()
+    }
+
 }

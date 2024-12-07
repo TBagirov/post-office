@@ -1,8 +1,10 @@
 package org.bagirov.postoffice.controller
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.bagirov.postoffice.dto.response.ReportResponse.ReportPublicationResponse
-import org.bagirov.postoffice.dto.response.ReportResponse.ReportSubscriberResponse
 import org.bagirov.postoffice.dto.response.ReportResponse.ReportSubscriptionResponse
+import org.bagirov.postoffice.dto.response.ReportResponse.ReportSubscriptionByIdSubscriberResponse
 import org.bagirov.postoffice.service.ReportService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -13,23 +15,36 @@ import java.util.*
 
 @RestController
 @RequestMapping("/api/report")
+@Tag(name = "ReportController", description = "Контроллер для взаимодействия с отчетами")
 class ReportController (
     private val reportService: ReportService
 ){
 
-    @GetMapping("/subscribers")
-    fun getReportSubscribers(): ResponseEntity<List<ReportSubscriberResponse>> {
-        return ResponseEntity.ok(reportService.subscriberReport())
+    @GetMapping("/subscriptions")
+    @Operation(
+        summary = "Получение отчета по подпискам",
+        description = "Получение отчета с данными о подписках"
+    )
+    fun getReportSubscriptions(): ResponseEntity<List<ReportSubscriptionResponse>> {
+        return ResponseEntity.ok(reportService.subscriptionReport())
     }
 
     @GetMapping("/publications")
+    @Operation(
+        summary = "Получение отчета по изданиям",
+        description = "Получение отчета с данными о издания"
+    )
     fun getReportPublications(): ResponseEntity<List<ReportPublicationResponse>> {
         return ResponseEntity.ok(reportService.publicationReport())
     }
 
-    @GetMapping("/subscriptions")
-    fun getReportSubscriptions(@RequestParam id: UUID): ResponseEntity<List<ReportSubscriptionResponse>> {
-        return ResponseEntity.ok(reportService.subscriptionReport(id))
+    @GetMapping("/subscriber-subscriptions")
+    @Operation(
+        summary = "Получение отчета о подписках подписчика по id",
+        description = "Получение отчета c данными о подписках подписчика по id"
+    )
+    fun getReportSubscriptionsBySubscriberId(@RequestParam id: UUID): ResponseEntity<List<ReportSubscriptionByIdSubscriberResponse>> {
+        return ResponseEntity.ok(reportService.subscriptionByIdSubscriberReport(id))
     }
 
 }

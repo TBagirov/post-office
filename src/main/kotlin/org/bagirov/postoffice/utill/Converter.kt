@@ -5,10 +5,18 @@ import org.bagirov.postoffice.dto.request.StreetRequest
 import org.bagirov.postoffice.dto.response.*
 import org.bagirov.postoffice.entity.*
 
+fun PostmanEntity.convertToResponseDto() = PostmanResponse(
+    id = this.id!!,
+    name = this.name,
+    surname = this.surname,
+    patronymic = this.patronymic,
+    regions = this.districts?.map { it -> it.region?.name }
+)
+
 fun StreetEntity.convertToResponseDto() = StreetResponse(
     id = this.id!!,
     name = this.name,
-    regionName = region!!.name,
+    regionName = region?.name,
 
 )
 fun StreetRequest.convertToEntity() = StreetEntity(
@@ -21,14 +29,14 @@ fun RegionEntity.convertToResponseDto() = RegionResponse(
     id = this.id!!,
     name = this.name,
     streets = this.streets?.map { it -> it.name },
-    postmans = this.districts?.map { it -> it.postman!!.getFio() }
+    postmans = this.districts?.map { it -> it.postman?.getFio() }
 )
 
 
 fun DistrictEntity.convertToResponseDto() = DistrictResponse(
     id = this.id!!,
-    postmanName = this.postman!!.getFio(),
-    regionName = this.region!!.name
+    postmanName = this.postman?.getFio(),
+    regionName = this.region?.name
 )
 
 
@@ -42,7 +50,7 @@ fun PublicationEntity.convertToResponseDto() = PublicationResponse(
     id = this.id!!,
     index = this.index,
     title = this.title,
-    publicationType = this.publicationType.type,
+    publicationType = this.publicationType?.type,
     price = this.price
 )
 
@@ -59,16 +67,17 @@ fun SubscriberEntity.convertToResponseDto() = SubscriberResponse(
     patronymic = this.patronymic,
     building = this.building,
     subAddress = this.subAddress,
-    postmanName = this.district.postman!!.getFio(),
-    regionName = this.district.region!!.name,
-    street = this.street.name
+    postmanName = this.district?.postman?.getFio(),
+    regionName = this.district?.region?.name,
+    street = this.street?.name
 )
 
 fun SubscriptionEntity.convertToResponseDto() = SubscriptionResponse(
     id = this.id!!,
-    publication = this.publication!!.convertToResponseDto(),
-    subscriber = this.subscriber!!.convertToResponseDto(),
-    duration = this.duration,
+    subscriber = this.subscriber?.convertToResponseDto(),
+    publication = this. publication?.convertToResponseDto(),
     startDate = this.startDate,
-    price = duration * publication!!.price
+    duration = this.duration,
+    price = if(this.publication?.price != null) this.publication!!.price * duration else null
+
 )
