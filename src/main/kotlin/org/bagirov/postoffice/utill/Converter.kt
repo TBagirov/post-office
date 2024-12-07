@@ -74,9 +74,10 @@ fun SubscriberEntity.convertToResponseDto() = SubscriberResponse(
 
 fun SubscriptionEntity.convertToResponseDto() = SubscriptionResponse(
     id = this.id!!,
-    publication = this.publication!!.convertToResponseDto(),
-    subscriber = this.subscriber!!.convertToResponseDto(),
-    duration = this.duration,
+    subscriber = this.subscriber?.convertToResponseDto(),
+    publication = this. publication?.convertToResponseDto(),
     startDate = this.startDate,
-    price = duration * publication!!.price
+    duration = this.duration,
+    price = if(this.publication?.price != null) this.publication!!.price * duration else null
+
 )

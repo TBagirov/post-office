@@ -2,6 +2,7 @@ package org.bagirov.postoffice.service
 
 
 import org.bagirov.postoffice.dto.request.SubscriptionRequest
+import org.bagirov.postoffice.dto.request.update.SubscriptionUpdateRequest
 import org.bagirov.postoffice.dto.response.SubscriptionResponse
 import org.bagirov.postoffice.entity.PublicationEntity
 import org.bagirov.postoffice.entity.SubscriberEntity
@@ -36,15 +37,13 @@ class SubscriptionService(
         if(subscriptionRepository.findBySubscriberAndPublication(tempSubscriber, tempPublication) != null)
             throw DuplicateSecondaryTableException(Identifier("subscriptions", true))
 
-        val subscription: SubscriptionEntity = SubscriptionEntity (
-            id = null,
-            subscriber = tempSubscriber,
-            publication = tempPublication,
+        val subscriptionSave: SubscriptionEntity = subscriptionRepository.saveSubscription(
+            id = UUID.randomUUID(),
+            subscriberId = tempSubscriber.id!!,
+            publicationId = tempPublication.id!!,
             duration = subscriptionRequest.duration,
-            startDate = LocalDateTime.now(),
+            startDate = LocalDateTime.now()
         )
-
-        val subscriptionSave: SubscriptionEntity = subscriptionRepository.save(subscription)
 
         //subscriptions
         tempSubscriber.subscriptions?.add(subscriptionSave)
@@ -52,4 +51,52 @@ class SubscriptionService(
 
         return subscriptionSave.convertToResponseDto()
     }
+
+    @Transactional
+    fun update(subscription: SubscriptionUpdateRequest) : SubscriptionResponse {
+
+        // Найти существующего подписчика
+        val existingSubscription = subscriptionRepository.findById(subscription.id)
+            .orElseThrow { IllegalArgumentException("Subscription with ID ${subscription.id} not found") }
+
+        val tempSubscriber: SubscriberEntity = subscriberRepository
+            .findById(subscription.subscriberId).orElse(null)
+
+        val tempPublication: PublicationEntity = publicationRepository
+            .findById(subscription.publicationId).orElse(null)
+
+
+        val subscriptionUpdate: SubscriptionEntity = subscriptionRepository.updateSubscription(
+            id = subscription.id,
+            subscriberId = tempSubscriber.id!!,
+            publicationId = tempPublication.id!!,
+            startDate = subscription.startDate,
+            duration = subscription.duration
+        )
+
+        tempSubscriber.subscriptions?.add(subscriptionUpdate)
+        tempPublication.subscriptions?.add(subscriptionUpdate)
+
+        existingSubscription.publication = tempPublication
+        existingSubscription.subscriber = tempSubscriber
+        existingSubscription.startDate = subscription.startDate
+        existingSubscription.duration = subscription.duration
+
+        return subscriptionUpdate.convertToResponseDto()
+    }
+
+    @Transactional
+    fun delete(id: UUID): SubscriptionResponse {
+
+        // Найти существующую подписку
+        val existingSubscription = subscriptionRepository.findById(id)
+            .orElseThrow { IllegalArgumentException("Subscription with ID ${id} not found") }
+
+        // Удалить издание
+        subscriptionRepository.deleteById(id)
+
+        return existingSubscription.convertToResponseDto()
+    }
+
+
 }

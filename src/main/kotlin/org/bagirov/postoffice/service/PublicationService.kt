@@ -4,7 +4,6 @@ package org.bagirov.postoffice.service
 import org.bagirov.postoffice.dto.request.PublicationRequest
 import org.bagirov.postoffice.dto.request.update.PublicationUpdateRequest
 import org.bagirov.postoffice.dto.response.PublicationResponse
-import org.bagirov.postoffice.entity.PostmanEntity
 import org.bagirov.postoffice.entity.PublicationEntity
 import org.bagirov.postoffice.entity.PublicationTypeEntity
 import org.bagirov.postoffice.repository.PublicationRepository
@@ -57,6 +56,10 @@ class PublicationService(
         val existingPublication = publicationRepository.findById(publication.id)
             .orElseThrow { IllegalArgumentException("Publication with ID ${publication.id} not found") }
 
+        val tempPublicationType: PublicationTypeEntity? =
+            publicationTypeRepository.findById(publication.publicationTypeId).orElse(null)
+
+
         val publicationUpdate: PublicationEntity = publicationRepository.updatePublication(
             id = publication.id,
             index = publication.index,
@@ -65,6 +68,7 @@ class PublicationService(
             price = publication.price
         )
 
+        existingPublication.publicationType = tempPublicationType
         existingPublication.index = publication.index
         existingPublication.title = publication.title
         existingPublication.price = publication.price
