@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
+@CrossOrigin(origins = arrayOf("http://localhost:3001"))
 @RestController
 @RequestMapping("/api/subscription")
 @Tag(name = "SubscriptionController", description = "Контроллер для взаимодействия с подписками подписчиков на печатные издания")

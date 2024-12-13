@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
+@CrossOrigin(origins = arrayOf("http://localhost:3001"))
 @RestController
 @RequestMapping("/api/region")
 @Tag(name = "RegionController", description = "Контроллер для взаимодействия с регионами")
