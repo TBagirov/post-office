@@ -7,12 +7,10 @@ import org.bagirov.postoffice.dto.response.ReportResponse.ReportSubscriptionResp
 import org.bagirov.postoffice.dto.response.ReportResponse.ReportSubscriptionByIdSubscriberResponse
 import org.bagirov.postoffice.service.ReportService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.util.*
 
+@CrossOrigin(origins = arrayOf("http://localhost:3000"))
 @RestController
 @RequestMapping("/api/report")
 @Tag(name = "ReportController", description = "Контроллер для взаимодействия с отчетами")

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
+@CrossOrigin(origins = arrayOf("http://localhost:3000"))
 @RestController
 @RequestMapping("/api/postman")
 @Tag(name = "PostmanController", description = "Контроллер для взаимодействия с почтальонами")

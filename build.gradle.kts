@@ -32,6 +32,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation ("org.springframework.boot:spring-boot-starter-webflux")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.3")
 

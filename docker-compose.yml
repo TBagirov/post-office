@@ -1,9 +1,23 @@
 version: '3.8'
 
 services:
+
+  post-office-app:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./
+    restart: always
+    image: post-office-app
+    container_name: post-office-app
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
   db:
     image: postgres:16
     container_name: post_office_db
+    restart: always
     environment:
       POSTGRES_DB: post-office
       POSTGRES_USER: postgres
