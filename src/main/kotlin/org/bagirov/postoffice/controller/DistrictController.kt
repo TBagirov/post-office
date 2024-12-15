@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
-@CrossOrigin(origins = arrayOf("http://localhost:3001"))
+@CrossOrigin(origins = arrayOf("http://localhost:3000"))
 @RestController
 @RequestMapping("api/district")
 @Tag(name = "DistrictController", description = "Контроллер для взаимодействия с отношением почтальонов к участкам")
