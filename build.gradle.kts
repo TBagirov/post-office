@@ -35,6 +35,7 @@ dependencies {
     implementation ("org.springframework.boot:spring-boot-starter-webflux")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.3")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
 
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")
