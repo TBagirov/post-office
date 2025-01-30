@@ -56,7 +56,7 @@ class PostmanController (
         description = "Удаление почтальона по id, " +
                 "удаленный почтальон в записях других таблиц изменится на null"
     )
-    fun delete(@RequestParam id: UUID): ResponseEntity<PostmanEntity> {
+    fun delete(@RequestParam id: UUID): ResponseEntity<PostmanResponse> {
         return ResponseEntity.ok(postmanService.delete(id))
     }
 

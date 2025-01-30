@@ -24,28 +24,27 @@ class DistrictService(
 
     fun getById(id: UUID): DistrictResponse = districtRepository.findById(id).orElse(null).convertToResponseDto()
 
-    fun getAll():List<DistrictResponse> = districtRepository.findAll().map{it -> it.convertToResponseDto()}
+    fun getAll():List<DistrictResponse> = districtRepository.findAll().map{ it.convertToResponseDto() }
 
     @Transactional
     fun save(districtRequest: DistrictRequest) : DistrictResponse {
-        val tempRegion: RegionEntity? = regionRepository.findById(districtRequest.regionId).orElse(null)
-        val tempPostman: PostmanEntity? = postmanRepository.findById(districtRequest.postmanId).orElse(null)
+        val tempRegion: RegionEntity? = regionRepository.findById(districtRequest.regionId)
+            .orElseThrow{IllegalArgumentException("")}
 
-        val district: DistrictEntity = DistrictEntity()
+        val tempPostman: PostmanEntity? = postmanRepository.findById(districtRequest.postmanId)
+            .orElseThrow{IllegalArgumentException("")}
 
-        district.region = tempRegion
-        district.postman = tempPostman
-
-        val districtSave: DistrictEntity = districtRepository.saveDistrict(
-            id = district.id ?: UUID.randomUUID(),
-            regionId = district.region!!.id,
-            postmanId = district.postman!!.id
+        val district: DistrictEntity = DistrictEntity(
+            region = tempRegion,
+            postman = tempPostman
         )
 
-        tempRegion?.districts?.add(districtSave)
-        tempPostman?.districts?.add(districtSave)
+        districtRepository.save(district)
 
-        return districtSave.convertToResponseDto()
+        tempRegion?.districts?.add(district)
+        tempPostman?.districts?.add(district)
+
+        return district.convertToResponseDto()
     }
 
     @Transactional
@@ -58,19 +57,17 @@ class DistrictService(
         val tempRegion: RegionEntity? = regionRepository.findById(district.regionId).orElse(null)
         val tempPostman: PostmanEntity? = postmanRepository.findById(district.postmanId).orElse(null)
 
-
-        // Выполнить обновление в базе данных
-        val districtUpdate = districtRepository.updateDistrict(
-            id = district.id,
-            regionId = tempRegion!!.id,
-            postmanId = tempPostman!!.id
-        )
-
-        // Обновить связи
         existingDistrict.region = tempRegion
         existingDistrict.postman = tempPostman
 
-        return districtUpdate.convertToResponseDto()
+        // Выполнить обновление в базе данных
+        districtRepository.save(existingDistrict)
+
+        // Обновить связи
+        tempRegion?.districts?.add(existingDistrict)
+        tempPostman?.districts?.add(existingDistrict)
+
+        return existingDistrict.convertToResponseDto()
     }
 
     @Transactional

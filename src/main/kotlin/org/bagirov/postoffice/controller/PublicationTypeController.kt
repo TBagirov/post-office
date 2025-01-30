@@ -57,7 +57,7 @@ class PublicationTypeController(
         description = "Удаление типа издания по id, " +
                 "удаленный тип издания в записях других таблиц изменится на null"
     )
-    fun delete(@RequestParam id: UUID): ResponseEntity<PublicationTypeEntity> {
+    fun delete(@RequestParam id: UUID): ResponseEntity<PublicationTypeResponse> {
         return ResponseEntity.ok(publicationTypeService.delete(id))
     }
 

@@ -21,69 +21,6 @@ interface SubscriptionRepository: JpaRepository<SubscriptionEntity, UUID> {
     fun findBySubscriberAndPublication(subscriber: SubscriberEntity, publication: PublicationEntity): SubscriptionEntity?
 
 
-    @Query("""
-        SELECT
-            *
-        FROM
-            subscriptions 
-        WHERE
-            id = :id
-        """, nativeQuery = true)
-    override fun findById(@Param("id") id: UUID): Optional<SubscriptionEntity>
-
-    @Query("""
-        SELECT
-            *
-        FROM
-            subscriptions  
-        """, nativeQuery = true)
-    override fun findAll(): MutableList<SubscriptionEntity>
-
-
-    @Transactional
-    @Query(
-        """
-        INSERT INTO subscriptions (id, subscriber_id, publication_id, start_date, duration)
-        VALUES (:id ,:subscriber_id, :publication_id, :start_date, :duration)
-        RETURNING *
-        """,
-        nativeQuery = true
-    )
-    fun saveSubscription(
-        @Param("id") id: UUID,
-        @Param("subscriber_id") subscriberId: UUID,
-        @Param("publication_id") publicationId: UUID,
-        @Param("start_date") startDate: LocalDateTime,
-        @Param("duration") duration: Int
-    ): SubscriptionEntity
-
-
-    @Transactional
-    @Query(
-        """
-    UPDATE subscriptions
-    SET subscriber_id = :subscriber_id, 
-        publication_id = :publication_id,
-        start_date = :start_date,
-        duration = :duration
-    WHERE id = :id
-    RETURNING *
-    """,
-        nativeQuery = true
-    )
-    fun updateSubscription(
-        @Param("id") id: UUID,
-        @Param("subscriber_id") subscriberId: UUID,
-        @Param("publication_id") publicationId: UUID,
-        @Param("start_date") startDate: LocalDateTime,
-        @Param("duration") duration: Int
-    ): SubscriptionEntity
-
-    @Modifying
-    @Query("""
-        DELETE FROM subscriptions WHERE id = :id
-    """, nativeQuery = true)
-    override fun deleteById(@Param("id") id: UUID)
 
 
 

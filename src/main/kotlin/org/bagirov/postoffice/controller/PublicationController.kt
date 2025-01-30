@@ -59,7 +59,7 @@ class PublicationController(
         description = "Удаление издания по id, " +
                 "удаленное издание в записях других таблиц изменится на null"
     )
-    fun delete(@RequestParam id: UUID): ResponseEntity<PublicationEntity> {
+    fun delete(@RequestParam id: UUID): ResponseEntity<PublicationResponse> {
         return ResponseEntity.ok(publicationService.delete(id))
     }
 }

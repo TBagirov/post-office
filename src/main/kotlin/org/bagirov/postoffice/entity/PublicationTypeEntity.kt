@@ -15,4 +15,6 @@ data class PublicationTypeEntity(
 
     @OneToMany(mappedBy = "publicationType")
     var publications: MutableList<PublicationEntity>? = null
+
+
 )

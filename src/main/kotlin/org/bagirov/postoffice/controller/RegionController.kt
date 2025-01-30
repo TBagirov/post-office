@@ -57,7 +57,7 @@ class RegionController(
         description = "Удаление региона по id, " +
                 "удаленный регион в записях других таблиц изменится на null"
     )
-    fun delete(@RequestParam id: UUID): ResponseEntity<RegionEntity> {
+    fun delete(@RequestParam id: UUID): ResponseEntity<RegionResponse> {
         return ResponseEntity.ok(regionService.delete(id))
     }
 
