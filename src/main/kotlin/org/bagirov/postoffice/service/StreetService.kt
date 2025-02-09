@@ -25,27 +25,21 @@ class StreetService(
 
     fun getById(id: UUID): StreetResponse = streetRepository.findById(id).orElse(null).convertToResponseDto()
 
-    fun getAll():List<StreetResponse> = streetRepository.findAll().map { it -> it.convertToResponseDto() }
+    fun getAll():List<StreetResponse> = streetRepository.findAll().map {it.convertToResponseDto() }
 
+    // TODO: разобраться почему не работает
     @Transactional
     fun save(streetRequest: StreetRequest): StreetResponse {
 
 
         val streetEntity = streetRequest.convertToEntity()
-
         val temp: RegionEntity = findNearestRegion(streetEntity.name)
 
         streetEntity.region = temp
 
-
-        val streetSave: StreetEntity = streetRepository.saveStreet(
-            id = streetEntity.id ?: UUID.randomUUID(),
-            name = streetEntity.name,
-            regionId = streetEntity.region!!.id!!
-        )
+        val streetSave: StreetEntity = streetRepository.save(streetEntity)
 
         temp.streets?.add(streetSave)
-
 
         return streetSave.convertToResponseDto()
     }
@@ -59,17 +53,14 @@ class StreetService(
 
         val tempRegion: RegionEntity? = regionRepository.findById(street.regionId).orElse(null)
 
-
         // Выполнить обновление в базе данных
-        val streetUpdate = streetRepository.updateStreet(
-            id = street.id,
-            regionId = tempRegion!!.id!!,
-            name = street.name
-        )
-
-        // Обновить связи
         existingStreet.region = tempRegion
         existingStreet.name = street.name
+
+        val streetUpdate = streetRepository.save(existingStreet)
+
+        // Обновить связи
+        tempRegion?.streets?.add(existingStreet)
 
         return streetUpdate.convertToResponseDto()
     }

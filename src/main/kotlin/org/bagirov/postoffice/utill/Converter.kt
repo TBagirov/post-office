@@ -17,8 +17,8 @@ fun StreetEntity.convertToResponseDto() = StreetResponse(
     id = this.id!!,
     name = this.name,
     regionName = region?.name,
-
 )
+
 fun StreetRequest.convertToEntity() = StreetEntity(
     id = null,
     name = this.name,
@@ -32,13 +32,11 @@ fun RegionEntity.convertToResponseDto() = RegionResponse(
     postmans = this.districts?.map { it -> it.postman?.getFio() }
 )
 
-
 fun DistrictEntity.convertToResponseDto() = DistrictResponse(
     id = this.id!!,
     postmanName = this.postman?.getFio(),
     regionName = this.region?.name
 )
-
 
 fun PublicationTypeRequest.convertToEntity() = PublicationTypeEntity(
     id = null,

@@ -25,20 +25,17 @@ class PublicationTypeService(
 
     fun getById(id: UUID): PublicationTypeResponse = publicationTypeRepository.findById(id).orElse(null).convertToResponseDto()
 
-    fun getAll():List<PublicationTypeResponse> = publicationTypeRepository.findAll().map { it -> it.convertToResponseDto() }
+    fun getAll():List<PublicationTypeResponse> = publicationTypeRepository.findAll().map { it.convertToResponseDto() }
 
 
     @Transactional
     fun save(publicationType: PublicationTypeRequest): PublicationTypeResponse {
 
+        val savePublicationType = publicationTypeRepository.save(PublicationTypeEntity(
+           type = publicationType.type
+        ))
 
-
-        val publicationTypeSave: PublicationTypeEntity = publicationTypeRepository.savePublicationType(
-            id = UUID.randomUUID(),
-            name = publicationType.type
-        )
-
-        return publicationTypeSave.convertToResponseDto()
+        return savePublicationType.convertToResponseDto()
     }
 
     @Transactional
@@ -48,18 +45,15 @@ class PublicationTypeService(
         val existingPublicationType = publicationTypeRepository.findById(publicationType.id!!)
             .orElseThrow { IllegalArgumentException("Publication Type with ID ${publicationType.id} not found") }
 
-        val publicationTypeUpdate = publicationTypeRepository.updatePublicationType(
-            id = publicationType.id!!,
-            name = publicationType.type,
-        )
-
         existingPublicationType.type = publicationType.type
 
-        return publicationTypeUpdate.convertToResponseDto()
+        publicationTypeRepository.save(existingPublicationType)
+
+        return existingPublicationType.convertToResponseDto()
     }
 
     @Transactional
-    fun delete(id: UUID): PublicationTypeEntity {
+    fun delete(id: UUID): PublicationTypeResponse {
 
         // Найти существующий тип издания
         val existingPublicationType = publicationTypeRepository.findById(id)
@@ -68,7 +62,7 @@ class PublicationTypeService(
         // Удалить тип издания
         publicationTypeRepository.deleteById(id)
 
-        return existingPublicationType
+        return existingPublicationType.convertToResponseDto()
     }
 
 }

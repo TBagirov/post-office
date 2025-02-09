@@ -8,7 +8,7 @@ import java.util.*
 data class PublicationEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    var id: UUID? = UUID.randomUUID(),
+    var id: UUID? = null,
 
     @Column(name="index", nullable = false)
     var index: String,

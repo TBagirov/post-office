@@ -27,7 +27,7 @@ class SubscriptionService(
 
     fun getById(id: UUID): SubscriptionResponse = subscriptionRepository.findById(id).orElse(null).convertToResponseDto()
 
-    fun getAll():List<SubscriptionResponse> = subscriptionRepository.findAll().map{it->it.convertToResponseDto()}
+    fun getAll():List<SubscriptionResponse> = subscriptionRepository.findAll().map{ it.convertToResponseDto()}
 
     @Transactional
     fun save(subscriptionRequest: SubscriptionRequest): SubscriptionResponse {
@@ -37,13 +37,14 @@ class SubscriptionService(
         if(subscriptionRepository.findBySubscriberAndPublication(tempSubscriber, tempPublication) != null)
             throw DuplicateSecondaryTableException(Identifier("subscriptions", true))
 
-        val subscriptionSave: SubscriptionEntity = subscriptionRepository.saveSubscription(
-            id = UUID.randomUUID(),
-            subscriberId = tempSubscriber.id!!,
-            publicationId = tempPublication.id!!,
+        val subscriptionNew = SubscriptionEntity(
+            subscriber = tempSubscriber,
+            publication = tempPublication,
             duration = subscriptionRequest.duration,
             startDate = LocalDateTime.now()
         )
+
+        val subscriptionSave: SubscriptionEntity = subscriptionRepository.save(subscriptionNew)
 
         //subscriptions
         tempSubscriber.subscriptions?.add(subscriptionSave)
@@ -65,22 +66,15 @@ class SubscriptionService(
         val tempPublication: PublicationEntity = publicationRepository
             .findById(subscription.publicationId).orElse(null)
 
-
-        val subscriptionUpdate: SubscriptionEntity = subscriptionRepository.updateSubscription(
-            id = subscription.id,
-            subscriberId = tempSubscriber.id!!,
-            publicationId = tempPublication.id!!,
-            startDate = subscription.startDate,
-            duration = subscription.duration
-        )
-
-        tempSubscriber.subscriptions?.add(subscriptionUpdate)
-        tempPublication.subscriptions?.add(subscriptionUpdate)
-
         existingSubscription.publication = tempPublication
         existingSubscription.subscriber = tempSubscriber
         existingSubscription.startDate = subscription.startDate
         existingSubscription.duration = subscription.duration
+
+        val subscriptionUpdate: SubscriptionEntity = subscriptionRepository.save(existingSubscription)
+
+        tempSubscriber.subscriptions?.add(subscriptionUpdate)
+        tempPublication.subscriptions?.add(subscriptionUpdate)
 
         return subscriptionUpdate.convertToResponseDto()
     }

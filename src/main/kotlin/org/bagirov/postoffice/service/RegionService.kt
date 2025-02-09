@@ -20,16 +20,13 @@ class RegionService(
 
     fun getById(id: UUID): RegionResponse = regionRepository.findById(id).orElse(null).convertToResponseDto()
 
-    fun getAll():List<RegionResponse> = regionRepository.findAll().map{it -> it.convertToResponseDto()}
+    fun getAll():List<RegionResponse> = regionRepository.findAll().map{ it.convertToResponseDto()}
 
     @Transactional
-    fun save(region: RegionEntity):RegionResponse{
+    fun save(region: RegionEntity):RegionResponse {
 
 
-        val regionSave: RegionEntity = regionRepository.saveRegion(
-            id =  region.id ?: UUID.randomUUID(),
-            name = region.name
-        )
+        val regionSave = regionRepository.save(region)
 
        return regionSave.convertToResponseDto()
     }
@@ -41,19 +38,19 @@ class RegionService(
         val existingRegion = regionRepository.findById(region.id!!)
             .orElseThrow { IllegalArgumentException("Region with ID ${region.id} not found") }
 
-        // Выполнить обновление в базе данных
-        val regionUpdate = regionRepository.updateRegion(
-            id = region.id!!,
-            name = region.name,
-        )
-
         existingRegion.name = region.name
 
-        return regionUpdate.convertToResponseDto()
+        // Выполнить обновление в базе данных
+        regionRepository.save(existingRegion)
+
+
+
+        return existingRegion.convertToResponseDto()
     }
 
+    // TODO: удаляет, но в ответ 500 код, разобраться почему
     @Transactional
-    fun delete(id: UUID): RegionEntity {
+    fun delete(id: UUID): RegionResponse {
         // Найти существующий регион
         val existingRegion = regionRepository.findById(id)
             .orElseThrow { IllegalArgumentException("Region with ID ${id} not found") }
@@ -61,7 +58,7 @@ class RegionService(
         // Удалить регион
         regionRepository.deleteById(id)
 
-        return existingRegion
+        return existingRegion.convertToResponseDto()
     }
 
 }

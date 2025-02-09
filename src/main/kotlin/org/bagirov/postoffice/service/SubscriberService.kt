@@ -23,7 +23,7 @@ class SubscriberService(
 
     fun getById(id: UUID): SubscriberResponse = subscriberRepository.findById(id).orElse(null).convertToResponseDto()
 
-    fun getAll():List<SubscriberResponse> = subscriberRepository.findAll().map { it -> it.convertToResponseDto() }
+    fun getAll():List<SubscriberResponse> = subscriberRepository.findAll().map {it.convertToResponseDto() }
 
     @Transactional
     fun save(subscriberRequest: SubscriberRequest): SubscriberResponse {
@@ -47,18 +47,20 @@ class SubscriberService(
             region = districtRes.region
         )
 
-        val subscriberSave:SubscriberEntity = subscriberRepository.saveSubscriber(
-            id = UUID.randomUUID(),
+        val subscriberNew = SubscriberEntity(
             name = subscriberRequest.name,
             surname = subscriberRequest.surname,
             patronymic = subscriberRequest.patronymic,
-            districtId = districtRes.id!!,
+            district = districtRes,
             building = subscriberRequest.building,
             subAddress = subscriberRequest.subAddress,
-            streetId = streetEntity.id!!
+            street = streetEntity
         )
 
+        val subscriberSave:SubscriberEntity = subscriberRepository.save(subscriberNew)
+
         districtRes.subscribers?.add(subscriberSave)
+        streetEntity.subscribers?.add(subscriberSave)
 
         return subscriberSave.convertToResponseDto()
     }
@@ -77,26 +79,19 @@ class SubscriberService(
         val tempDistrict: DistrictEntity = districtRepository
             .findById(subscriber.districtId).orElse(null)
 
-        val subscriberUpdate: SubscriberEntity = subscriberRepository.updateSubscriber(
-            id = subscriber.id,
-            name = subscriber.name,
-            surname = subscriber.surname,
-            patronymic = subscriber.patronymic,
-            building = subscriber.building,
-            subAddress = subscriber.subAddress,
-            streetId = subscriber.streetId,
-            districtId = subscriber.districtId
-        )
 
         existingSubscriber.street = tempStreet
         existingSubscriber.district = tempDistrict
-
-
         existingSubscriber.name = subscriber.name
         existingSubscriber.surname = subscriber.surname
         existingSubscriber.patronymic = subscriber.patronymic
         existingSubscriber.subAddress = subscriber.subAddress
         existingSubscriber.building = subscriber.building
+
+        val subscriberUpdate: SubscriberEntity = subscriberRepository.save(existingSubscriber)
+
+        tempStreet.subscribers?.add(subscriberUpdate)
+        tempDistrict.subscribers?.add(subscriberUpdate)
 
         return subscriberUpdate.convertToResponseDto()
     }
