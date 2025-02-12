@@ -77,5 +77,6 @@ fun SubscriptionEntity.convertToResponseDto() = SubscriptionResponse(
     startDate = this.startDate,
     duration = this.duration,
     price = if(this.publication?.price != null) this.publication!!.price * duration else null
-
 )
+
+
