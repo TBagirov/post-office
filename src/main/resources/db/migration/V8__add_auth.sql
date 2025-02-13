@@ -76,6 +76,11 @@
 
 
 -------------------------
+    CREATE TABLE IF NOT EXISTS  roles(
+                                         id UUID NOT NULL PRIMARY KEY,
+                                         name varchar(15) NOT NULL
+    );
+
 
     CREATE TABLE IF NOT EXISTS  users(
         id UUID NOT NULL PRIMARY KEY,
@@ -86,15 +91,9 @@
         role_id UUID NOT NULL REFERENCES roles(id)
     );
 
-    CREATE TABLE IF NOT EXISTS  roles(
-        id UUID NOT NULL PRIMARY KEY,
-        name varchar(15) NOT NULL
-    );
-
-
     CREATE TABLE IF NOT EXISTS refresh_tokens(
         id UUID NOT NULL PRIMARY KEY,
-        "user" UUID NOT NULL REFERENCES users(id),
+        user_id UUID NOT NULL REFERENCES users(id),
         token varchar NOT NULL
     );
 

@@ -22,7 +22,7 @@ import javax.crypto.SecretKey
 class JwtService(
     val jwtProperties: JwtProperties,
     val userDetailsService: UserDetailsService,
-    val userService: UserService,
+//    val userService: UserService,
 ){
     lateinit var key: SecretKey
 
