@@ -9,4 +9,5 @@ import java.util.UUID
 interface RefreshTokenRepository : JpaRepository<RefreshTokenEntity, UUID> {
     fun findAllByToken(token: String): MutableList<RefreshTokenEntity>
 
+    fun findAllByUserId(userId: UUID): MutableList<RefreshTokenEntity>
 }

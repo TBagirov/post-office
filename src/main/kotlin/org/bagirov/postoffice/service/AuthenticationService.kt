@@ -147,13 +147,14 @@ class AuthenticationService(
         val refreshToken = jwtService.createRefreshToken(user)
 
         userRepository.save(user)
-        setRefreshTokenInCookie(response, refreshToken)
 
         val refreshTokenEntity = RefreshTokenEntity(
             user = user,
             token = refreshToken
         )
+
         refreshTokenRepository.save(refreshTokenEntity)
+        setRefreshTokenInCookie(response, refreshToken)
 
         return AuthenticationResponse(
             accessToken = accessToken,

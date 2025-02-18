@@ -31,7 +31,7 @@ data class UserEntity (
     var role: RoleEntity,
 
     @OneToMany(mappedBy = "user")
-    var user: MutableList<RefreshTokenEntity>? = mutableListOf()
+    var tokens: MutableList<RefreshTokenEntity>? = mutableListOf()
 
 ) : UserDetails{
 
@@ -53,7 +53,7 @@ data class UserEntity (
 
     override fun isEnabled(): Boolean = true
     override fun toString(): String {
-        return "UserEntity(id=$id, name='$name', username='$username', email='$email', password='$password', role=$role, user=$user)"
+        return "UserEntity(id=$id, name='$name', username='$username', email='$email', password='$password', role=$role, tokens=$tokens)"
     }
 
 }
