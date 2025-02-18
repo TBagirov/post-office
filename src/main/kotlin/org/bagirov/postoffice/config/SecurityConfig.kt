@@ -27,12 +27,12 @@ class SecurityConfig(
             .authorizeHttpRequests { authorizationManagerRequestMatcherRegistry ->
                 authorizationManagerRequestMatcherRegistry
                     .requestMatchers(
-                        "/api/authentication/email/**",
+                        "/api/authentication/**",
                         "/api/authentication/who-am-i"
                     )
-                    .authenticated()
-                    .anyRequest()
                     .permitAll()
+                    .anyRequest()
+                    .authenticated()
             }
             .httpBasic(Customizer.withDefaults())
             .sessionManagement { httpSecuritySessionManagementConfigurer ->

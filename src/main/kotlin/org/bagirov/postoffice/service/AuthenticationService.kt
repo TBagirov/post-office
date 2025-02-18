@@ -69,7 +69,7 @@ class AuthenticationService(
 
         users.forEach { user ->
             if (request.username == user.username) {
-                throw NoSuchElementException("Пользователь с таким email уже существует")
+                throw NoSuchElementException("Пользователь с таким username уже существует")
             }
         }
 
@@ -85,11 +85,11 @@ class AuthenticationService(
             role = roleGuest!!
         )
 
+        userRepository.save(user)
 
         val accessToken = jwtService.createAccessToken(user)
         val refreshToken = jwtService.createRefreshToken(user)
 
-        userRepository.save(user)
         setRefreshTokenInCookie(response, refreshToken)
 
         val refreshTokenEntity = RefreshTokenEntity(

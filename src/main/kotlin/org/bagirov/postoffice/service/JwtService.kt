@@ -34,15 +34,12 @@ class JwtService(
     fun createAccessToken(
         user: UserEntity
     ): String {
-        val claims = Jwts.claims()
-            .subject(user.username)
-            .add("id", user.id)
-            .add("role", user.role.toString())
-            .build()
         val validity = Instant.now()
             .plus(jwtProperties.accessExpiration, ChronoUnit.HOURS)
         return Jwts.builder()
-            .claims(claims)
+            .subject(user.username)
+            .claim("id", user.id.toString())
+            .claim("role", user.role.name)
             .expiration(Date.from(validity))
             .signWith(key)
             .compact()
@@ -53,14 +50,12 @@ class JwtService(
     fun createRefreshToken(
         user: UserEntity
     ): String {
-        val claims = Jwts.claims()
-            .subject(user.username)
-            .add("id", user.id)
-            .build()
+
         val validity = Instant.now()
             .plus(jwtProperties.refreshExpiration, ChronoUnit.DAYS)
         return Jwts.builder()
-            .claims(claims)
+            .subject(user.username)
+            .claim("id", user.id.toString())
             .expiration(Date.from(validity))
             .signWith(key)
             .compact()
