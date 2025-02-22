@@ -75,7 +75,7 @@ class AuthenticationService(
 
 
         val roleGuest = roleRepository
-            .findByName("Guest")
+            .findByName("GUEST")
 
         val user = UserEntity (
             username = request.username,

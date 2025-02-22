@@ -28,9 +28,10 @@ class SecurityConfig(
                 authorizationManagerRequestMatcherRegistry
                     .requestMatchers(
                         "/api/authentication/**",
-                        "/api/authentication/who-am-i"
                     )
                     .permitAll()
+                    .requestMatchers("/api/postman/**").hasAuthority("POSTMAN")
+                    .requestMatchers("/api/report/**").hasAuthority("ADMIN")
                     .anyRequest()
                     .authenticated()
             }
