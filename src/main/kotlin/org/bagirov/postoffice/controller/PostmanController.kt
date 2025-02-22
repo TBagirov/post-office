@@ -2,6 +2,7 @@ package org.bagirov.postoffice.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.bagirov.postoffice.dto.auth.RegistrationRequest
 import org.bagirov.postoffice.dto.response.PostmanResponse
 import org.bagirov.postoffice.entity.PostmanEntity
 import org.bagirov.postoffice.service.PostmanService
@@ -32,12 +33,12 @@ class PostmanController (
     )
     fun getAll():ResponseEntity<List<PostmanResponse>> = ResponseEntity.ok(postmanService.getAll())
 
-    @PostMapping()
+    @PostMapping("/create")
     @Operation(
         summary = "Добавление почтальона",
         description = "Добавление данных о почтальоне"
     )
-    fun save(@RequestBody postman: PostmanEntity): ResponseEntity<PostmanResponse> {
+    fun save(@RequestBody postman: RegistrationRequest): ResponseEntity<PostmanResponse> {
         return ResponseEntity.ok(postmanService.save(postman))
     }
 

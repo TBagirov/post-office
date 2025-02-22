@@ -10,19 +10,11 @@ data class PostmanEntity(
     @GeneratedValue(strategy = GenerationType.UUID)
     var id: UUID? = null,
 
-    @Column(name="name", nullable = false)
-    var name: String,
-
-    @Column(name="surname", nullable = false)
-    var surname: String,
-
-    @Column(name="patronymic", nullable = false)
-    var patronymic: String,
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false, unique = true)
+    var user: UserEntity,
 
     @OneToMany(mappedBy = "postman")
     var districts: MutableList<DistrictEntity>? = null
 
-){
-    fun getFio() = listOfNotNull(surname, name, patronymic)
-        .joinToString(" ")
-}
+)

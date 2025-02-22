@@ -48,9 +48,7 @@ class SubscriberService(
         )
 
         val subscriberNew = SubscriberEntity(
-            name = subscriberRequest.name,
-            surname = subscriberRequest.surname,
-            patronymic = subscriberRequest.patronymic,
+            user = subscriberRequest.user,
             district = districtRes,
             building = subscriberRequest.building,
             subAddress = subscriberRequest.subAddress,
@@ -82,9 +80,6 @@ class SubscriberService(
 
         existingSubscriber.street = tempStreet
         existingSubscriber.district = tempDistrict
-        existingSubscriber.name = subscriber.name
-        existingSubscriber.surname = subscriber.surname
-        existingSubscriber.patronymic = subscriber.patronymic
         existingSubscriber.subAddress = subscriber.subAddress
         existingSubscriber.building = subscriber.building
 

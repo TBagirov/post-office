@@ -30,6 +30,8 @@ class SecurityConfig(
                         "/api/authentication/**",
                     )
                     .permitAll()
+                    .requestMatchers("/api/role/**").hasAuthority("ADMIN")
+                    .requestMatchers("/api/postman/create").hasAuthority("ADMIN")
                     .requestMatchers("/api/postman/**").hasAuthority("POSTMAN")
                     .requestMatchers("/api/report/**").hasAuthority("ADMIN")
                     .anyRequest()
