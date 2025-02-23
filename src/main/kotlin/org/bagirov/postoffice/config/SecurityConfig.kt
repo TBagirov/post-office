@@ -31,9 +31,11 @@ class SecurityConfig(
                     )
                     .permitAll()
                     .requestMatchers("/api/role/**").hasAuthority("ADMIN")
-                    .requestMatchers("/api/postman/create").hasAuthority("ADMIN")
-                    .requestMatchers("/api/postman/**").hasAuthority("POSTMAN")
+                    .requestMatchers("/api/postman/**").hasAuthority("ADMIN")
                     .requestMatchers("/api/report/**").hasAuthority("ADMIN")
+                    .requestMatchers("/api/subscriber/create").hasAuthority("GUEST")
+                    .requestMatchers("/api/subscriber/update").hasAuthority("SUBSCRIBER")
+                    .requestMatchers("/api/subscriber/delete").hasAuthority("SUBSCRIBER")
                     .anyRequest()
                     .authenticated()
             }

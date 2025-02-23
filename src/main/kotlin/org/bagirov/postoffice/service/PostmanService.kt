@@ -70,7 +70,6 @@ class PostmanService(
             .orElseThrow { IllegalArgumentException("Postman with ID ${postman.id} not found") }
 
 
-
        postmanRepository.save(existingPostman)
 
 
@@ -83,7 +82,9 @@ class PostmanService(
         val existingPostman = postmanRepository.findById(id)
             .orElseThrow { IllegalArgumentException("Postman with ID ${id} not found") }
 
-
+        // Отключаем почтальона от пользователя перед удалением
+        existingPostman.user.postman = null
+        userRepository.save(existingPostman.user) // Сохраняем обновление
 
         // Удалить отношение почтальонов к районам
         postmanRepository.deleteById(id)

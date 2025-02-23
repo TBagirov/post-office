@@ -34,31 +34,32 @@ class SubscriberController(
     )
     fun getAll():ResponseEntity<List<SubscriberResponse>> = ResponseEntity.ok(subscriberService.getAll())
 
-    @PostMapping()
+    @PostMapping("/create")
     @Operation(
         summary = "Добавление подписчиков",
         description = "Добавление данных о подписчике"
     )
-    fun save(@RequestBody subscriber: SubscriberRequest): ResponseEntity<SubscriberResponse> {
-        return ResponseEntity.ok(subscriberService.save(subscriber))
+    fun save(@RequestHeader("Authorization")token: String,
+             @RequestBody subscriber: SubscriberRequest): ResponseEntity<SubscriberResponse> {
+        return ResponseEntity.ok(subscriberService.save(token.substring(7), subscriber))
     }
 
-    @PutMapping()
+    @PutMapping("/update")
     @Operation(
         summary = "Редактирование подписчика по id",
         description = "Редактирование данных подписчика по id"
     )
-    fun update(@RequestBody publication: SubscriberUpdateRequest): ResponseEntity<SubscriberResponse> {
-        return ResponseEntity.ok(subscriberService.update(publication))
+    fun update(@RequestHeader("Authorization") token: String, @RequestBody publication: SubscriberUpdateRequest): ResponseEntity<SubscriberResponse> {
+        return ResponseEntity.ok(subscriberService.update(token.substring(7), publication))
     }
 
-    @DeleteMapping()
+    @DeleteMapping("/delete")
     @Operation(
         summary = "Удаление подписчика по id",
         description = "Удаление подписчика по id, " +
                 "удаленный подписчик в записях других таблиц изменится на null"
     )
-    fun delete(@RequestParam id: UUID): ResponseEntity<SubscriberResponse> {
-        return ResponseEntity.ok(subscriberService.delete(id))
+    fun delete(@RequestHeader("Authorization")token: String): ResponseEntity<SubscriberResponse> {
+        return ResponseEntity.ok(subscriberService.delete(token.substring(7)))
     }
 }

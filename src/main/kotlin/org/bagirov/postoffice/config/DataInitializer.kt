@@ -12,22 +12,23 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 @Component
-class DataInitializer(private val roleRepository: RoleRepository,
-                      private val userRepository: UserRepository,
-                      private val passwordEncoder: PasswordEncoder,
-
-                      ) : CommandLineRunner {
+class DataInitializer(
+    private val roleRepository: RoleRepository,
+    private val userRepository: UserRepository,
+    private val passwordEncoder: PasswordEncoder,
+    ) : CommandLineRunner {
 
     override fun run(vararg args: String?) {
 
         val roleAll = roleRepository.findAll()
         roleAll.find { it.name == "GUEST" } ?: roleRepository.save(RoleEntity(name = "GUEST"))
+        roleAll.find { it.name == "SUBSCRIBER" } ?: roleRepository.save(RoleEntity(name = "SUBSCRIBER"))
 
         val userAll = userRepository.findAll()
         val id = userAll.find { it.role.name == "ADMIN" }
         if (id == null) {
 
-            val roleAdmin = roleAll.find{it.name == "ADMIN"} ?: roleRepository.save(RoleEntity(name = "ADMIN"))
+            val roleAdmin = roleAll.find { it.name == "ADMIN" } ?: roleRepository.save(RoleEntity(name = "ADMIN"))
 
             val user = UserEntity(
                 username = "admin",

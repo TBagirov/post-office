@@ -1,6 +1,7 @@
 package org.bagirov.postoffice.entity
 
 import jakarta.persistence.*
+import org.hibernate.proxy.HibernateProxy
 import java.util.*
 
 
@@ -21,23 +22,26 @@ data class RegionEntity(
     var districts: MutableList<DistrictEntity>? = null
 
 ){
-    override fun equals(other: Any?): Boolean {
+    final override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
+        if (other == null) return false
+        val oEffectiveClass =
+            if (other is HibernateProxy) other.hibernateLazyInitializer.persistentClass else other.javaClass
+        val thisEffectiveClass =
+            if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass else this.javaClass
+        if (thisEffectiveClass != oEffectiveClass) return false
         other as RegionEntity
 
-        if (id != other.id) return false
-        if (name != other.name) return false
-
-        return true
+        return id != null && id == other.id
     }
 
-    override fun hashCode(): Int {
-        var result = id?.hashCode() ?: 0
-        result = 31 * result + name.hashCode()
-        return result
+    final override fun hashCode(): Int =
+        if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass.hashCode() else javaClass.hashCode()
+
+    @Override
+    override fun toString(): String {
+        return this::class.simpleName + "(  id = $id   ,   name = $name )"
     }
 
-    // override fun toString(): String {return name}
+// override fun toString(): String {return name}
 }
