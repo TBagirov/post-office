@@ -3,6 +3,7 @@ package org.bagirov.postoffice.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import mu.KotlinLogging
 import org.bagirov.postoffice.dto.request.SubscriberRequest
 import org.bagirov.postoffice.dto.request.update.SubscriberUpdateRequest
 import org.bagirov.postoffice.dto.response.SubscriberResponse
@@ -18,12 +19,16 @@ import java.util.*
 class SubscriberController(
     val subscriberService: SubscriberService
 ) {
+
+    private val log = KotlinLogging.logger {}
+
     @GetMapping("/{id}")
     @Operation(
         summary = "Получение подписчика по id",
         description = "Получение данных о подписчике по id"
     )
-    fun getDistrict(@PathVariable id: UUID): ResponseEntity<SubscriberResponse> {
+    fun getSubscriber(@PathVariable id: UUID): ResponseEntity<SubscriberResponse> {
+        log.info { "Request Subscriber by id: $id" }
         return ResponseEntity.ok(subscriberService.getById(id))
     }
 
@@ -34,31 +39,35 @@ class SubscriberController(
     )
     fun getAll():ResponseEntity<List<SubscriberResponse>> = ResponseEntity.ok(subscriberService.getAll())
 
-    @PostMapping()
+    @PostMapping("/create")
     @Operation(
         summary = "Добавление подписчиков",
         description = "Добавление данных о подписчике"
     )
-    fun save(@RequestBody subscriber: SubscriberRequest): ResponseEntity<SubscriberResponse> {
-        return ResponseEntity.ok(subscriberService.save(subscriber))
+    fun save(@RequestHeader("Authorization")token: String,
+             @RequestBody subscriber: SubscriberRequest): ResponseEntity<SubscriberResponse> {
+        log.info { "Request create Subscriber" }
+        return ResponseEntity.ok(subscriberService.save(token.substring(7), subscriber))
     }
 
-    @PutMapping()
+    @PutMapping("/update")
     @Operation(
         summary = "Редактирование подписчика по id",
         description = "Редактирование данных подписчика по id"
     )
-    fun update(@RequestBody publication: SubscriberUpdateRequest): ResponseEntity<SubscriberResponse> {
-        return ResponseEntity.ok(subscriberService.update(publication))
+    fun update(@RequestHeader("Authorization") token: String, @RequestBody subscriber: SubscriberUpdateRequest): ResponseEntity<SubscriberResponse> {
+        log.info { "Request update Subscriber" }
+        return ResponseEntity.ok(subscriberService.update(token.substring(7), subscriber))
     }
 
-    @DeleteMapping()
+    @DeleteMapping("/delete")
     @Operation(
         summary = "Удаление подписчика по id",
         description = "Удаление подписчика по id, " +
                 "удаленный подписчик в записях других таблиц изменится на null"
     )
-    fun delete(@RequestParam id: UUID): ResponseEntity<SubscriberResponse> {
-        return ResponseEntity.ok(subscriberService.delete(id))
+    fun delete(@RequestHeader("Authorization")token: String): ResponseEntity<SubscriberResponse> {
+        log.info { "Request delete Subscriber" }
+        return ResponseEntity.ok(subscriberService.delete(token.substring(7)))
     }
 }
