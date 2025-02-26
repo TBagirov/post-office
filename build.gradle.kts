@@ -41,6 +41,7 @@ dependencies {
 // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
+    implementation("io.github.microutils:kotlin-logging:3.0.5")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.3")
     implementation("org.apache.poi:poi-ooxml:5.2.3")

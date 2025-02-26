@@ -2,6 +2,7 @@ package org.bagirov.postoffice.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import mu.KotlinLogging
 import org.bagirov.postoffice.service.ReportService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,12 +22,16 @@ class ReportController (
     private val reportService: ReportService
 ){
 
+    private val log = KotlinLogging.logger {}
+
     @GetMapping("/subscriptions")
     @Operation(
         summary = "Получение отчета по подпискам",
         description = "Получение отчета с данными о подписках"
     )
     fun getReportSubscriptions(): ResponseEntity<ByteArray> {
+        log.info { "Request get Report on Subscriptions" }
+
         val excelFile: ByteArray? = reportService.subscriptionReport()
         val headers: HttpHeaders = HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -44,6 +49,8 @@ class ReportController (
         description = "Получение отчета с данными о издания"
     )
     fun getReportPublications(): ResponseEntity<ByteArray> {
+        log.info { "Request get Report on Publications" }
+
         val excelFile: ByteArray? = reportService.publicationReport()
         val headers: HttpHeaders = HttpHeaders()
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -61,6 +68,7 @@ class ReportController (
         description = "Получение отчета c данными о подписках подписчика по id"
     )
     fun getReportSubscriptionsBySubscriberId(@RequestParam id: UUID): ResponseEntity<ByteArray> {
+        log.info { "Request get Report on Subscription  by id: $id" }
 
         val excelFile: ByteArray? = reportService.subscriptionByIdSubscriberReport(id)
         val headers: HttpHeaders = HttpHeaders()

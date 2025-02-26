@@ -2,6 +2,7 @@ package org.bagirov.postoffice.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import mu.KotlinLogging
 import org.bagirov.postoffice.dto.response.PostmanResponse
 import org.bagirov.postoffice.entity.PostmanEntity
 import org.bagirov.postoffice.service.PostmanService
@@ -16,12 +17,16 @@ import java.util.*
 class PostmanController (
     private val postmanService: PostmanService
 ){
+
+    private val log = KotlinLogging.logger {}
+
     @GetMapping("/{id}")
     @Operation(
         summary = "Получение почтальона по id",
         description = "Получение данных о почтальона по id"
     )
     fun getPostman(@PathVariable id: UUID): ResponseEntity<PostmanResponse> {
+        log.info {"Request get Postman by id: $id"}
         return ResponseEntity.ok(postmanService.getById(id))
     }
 
@@ -30,7 +35,10 @@ class PostmanController (
         summary = "Получение всех почтальонов",
         description = "Получение данных о всех почтальонах"
     )
-    fun getAll():ResponseEntity<List<PostmanResponse>> = ResponseEntity.ok(postmanService.getAll())
+    fun getAll():ResponseEntity<List<PostmanResponse>> {
+        log.info {"Request get all Postman"}
+        return ResponseEntity.ok(postmanService.getAll())
+    }
 
     @PostMapping()
     @Operation(
@@ -38,6 +46,7 @@ class PostmanController (
         description = "Добавление данных о почтальоне"
     )
     fun save(@RequestBody postman: PostmanEntity): ResponseEntity<PostmanResponse> {
+        log.info {"Request create Postman"}
         return ResponseEntity.ok(postmanService.save(postman))
     }
 
@@ -47,6 +56,7 @@ class PostmanController (
         description = "Редактирование данных о почтальоне по id"
     )
     fun update(@RequestBody postman: PostmanEntity): ResponseEntity<PostmanResponse> {
+        log.info {"Request update Postman by id: ${postman.id}"}
         return ResponseEntity.ok(postmanService.update(postman))
     }
 
@@ -57,6 +67,7 @@ class PostmanController (
                 "удаленный почтальон в записях других таблиц изменится на null"
     )
     fun delete(@RequestParam id: UUID): ResponseEntity<PostmanResponse> {
+        log.info {"Delete Postman by id: $id"}
         return ResponseEntity.ok(postmanService.delete(id))
     }
 
