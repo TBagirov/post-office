@@ -3,7 +3,6 @@ package org.bagirov.postoffice.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import mu.KotlinLogging
 import org.bagirov.postoffice.dto.request.SubscriberRequest
 import org.bagirov.postoffice.dto.request.update.SubscriberUpdateRequest
 import org.bagirov.postoffice.dto.response.SubscriberResponse
@@ -19,16 +18,12 @@ import java.util.*
 class SubscriberController(
     val subscriberService: SubscriberService
 ) {
-
-    private val log = KotlinLogging.logger {}
-
     @GetMapping("/{id}")
     @Operation(
         summary = "Получение подписчика по id",
         description = "Получение данных о подписчике по id"
     )
-    fun getSubscriber(@PathVariable id: UUID): ResponseEntity<SubscriberResponse> {
-        log.info { "Request get Subscriber by id: $id"}
+    fun getDistrict(@PathVariable id: UUID): ResponseEntity<SubscriberResponse> {
         return ResponseEntity.ok(subscriberService.getById(id))
     }
 
@@ -37,10 +32,7 @@ class SubscriberController(
         summary = "Получение всех подписчиков",
         description = "Получение данных всех подписчиков"
     )
-    fun getAll():ResponseEntity<List<SubscriberResponse>> {
-        log.info { "Request gel all Subscriber" }
-        return ResponseEntity.ok(subscriberService.getAll())
-    }
+    fun getAll():ResponseEntity<List<SubscriberResponse>> = ResponseEntity.ok(subscriberService.getAll())
 
     @PostMapping()
     @Operation(
@@ -48,7 +40,6 @@ class SubscriberController(
         description = "Добавление данных о подписчике"
     )
     fun save(@RequestBody subscriber: SubscriberRequest): ResponseEntity<SubscriberResponse> {
-        log.info { "Request create Subscriber" }
         return ResponseEntity.ok(subscriberService.save(subscriber))
     }
 
@@ -57,9 +48,8 @@ class SubscriberController(
         summary = "Редактирование подписчика по id",
         description = "Редактирование данных подписчика по id"
     )
-    fun update(@RequestBody subscriber: SubscriberUpdateRequest): ResponseEntity<SubscriberResponse> {
-        log.info { "Request update Subscriber by id: ${subscriber.id}" }
-        return ResponseEntity.ok(subscriberService.update(subscriber))
+    fun update(@RequestBody publication: SubscriberUpdateRequest): ResponseEntity<SubscriberResponse> {
+        return ResponseEntity.ok(subscriberService.update(publication))
     }
 
     @DeleteMapping()
@@ -69,7 +59,6 @@ class SubscriberController(
                 "удаленный подписчик в записях других таблиц изменится на null"
     )
     fun delete(@RequestParam id: UUID): ResponseEntity<SubscriberResponse> {
-        log.info { "Request delete Subscriber by id: $id" }
         return ResponseEntity.ok(subscriberService.delete(id))
     }
 }

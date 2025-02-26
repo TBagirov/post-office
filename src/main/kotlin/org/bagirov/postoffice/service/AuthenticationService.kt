@@ -19,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
 
 @Service
 class AuthenticationService(
@@ -75,14 +77,18 @@ class AuthenticationService(
 
 
         val roleGuest = roleRepository
-            .findByName("Guest")
+            .findByName("GUEST")
 
         val user = UserEntity (
             username = request.username,
             password = passwordEncoder.encode(request.password),
-            email = request.email,
+            role = roleGuest!!,
             name = request.name,
-            role = roleGuest!!
+            surname = request.surname,
+            patronymic =request.patronymic,
+            email = request.email,
+            phone = request.phone,
+            createdAt = LocalDateTime.now()
         )
 
         userRepository.save(user)

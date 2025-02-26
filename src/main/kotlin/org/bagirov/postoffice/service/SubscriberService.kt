@@ -5,10 +5,10 @@ import org.bagirov.postoffice.dto.request.update.SubscriberUpdateRequest
 import org.bagirov.postoffice.dto.response.StreetResponse
 import org.bagirov.postoffice.dto.response.SubscriberResponse
 import org.bagirov.postoffice.entity.*
-import org.bagirov.postoffice.repository.DistrictRepository
-import org.bagirov.postoffice.repository.StreetRepository
-import org.bagirov.postoffice.repository.SubscriberRepository
+import org.bagirov.postoffice.repository.*
 import org.bagirov.postoffice.utill.convertToResponseDto
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -19,6 +19,9 @@ class SubscriberService(
     private val districtRepository: DistrictRepository,
     private val streetRepository: StreetRepository,
     private val streetService: StreetService,
+    private val userRepository: UserRepository,
+    private val roleRepository: RoleRepository,
+    private val jwtService: JwtService,
 ) {
 
     fun getById(id: UUID): SubscriberResponse = subscriberRepository.findById(id).orElse(null).convertToResponseDto()
@@ -26,7 +29,25 @@ class SubscriberService(
     fun getAll():List<SubscriberResponse> = subscriberRepository.findAll().map {it.convertToResponseDto() }
 
     @Transactional
-    fun save(subscriberRequest: SubscriberRequest): SubscriberResponse {
+    fun save(token: String, subscriberRequest: SubscriberRequest): SubscriberResponse {
+        // TODO: когда будет больше ф-ций, проверить можно ли использовать такой способ извлечения токена
+//        val authentication = SecurityContextHolder.getContext().authentication
+//        val jwt = authentication.credentials as? String ?:
+//        throw BadCredentialsException("Token cannot be null")
+
+
+        if(!jwtService.isValidExpired(token))
+            throw IllegalArgumentException("Token Expired")
+
+        val user = userRepository.findById(UUID.fromString(jwtService.getId(token)))
+            .orElseThrow{ IllegalArgumentException("Запрос от несуществующего пользователя") }
+
+        val roleSubscriber = roleRepository.findByName("SUBSCRIBER") ?:
+            throw IllegalArgumentException("Роли SUBSCRIBER нет в базе данных!")
+
+        user.role = roleSubscriber
+        val userSave = userRepository.save(user)
+        roleSubscriber.users?.add(userSave)
 
         val tempStreet: StreetEntity? = streetRepository.findByName(subscriberRequest.street)
 
@@ -48,9 +69,7 @@ class SubscriberService(
         )
 
         val subscriberNew = SubscriberEntity(
-            name = subscriberRequest.name,
-            surname = subscriberRequest.surname,
-            patronymic = subscriberRequest.patronymic,
+            user = userSave,
             district = districtRes,
             building = subscriberRequest.building,
             subAddress = subscriberRequest.subAddress,
@@ -61,16 +80,20 @@ class SubscriberService(
 
         districtRes.subscribers?.add(subscriberSave)
         streetEntity.subscribers?.add(subscriberSave)
+        userSave.subscriber = subscriberSave
 
         return subscriberSave.convertToResponseDto()
     }
 
     @Transactional
-    fun update(subscriber: SubscriberUpdateRequest) : SubscriberResponse {
+    fun update(token: String, subscriber: SubscriberUpdateRequest) : SubscriberResponse {
 
-        // Найти существующего подписчика
-        val existingSubscriber = subscriberRepository.findById(subscriber.id)
-            .orElseThrow { IllegalArgumentException("Subscriber with ID ${subscriber.id} not found") }
+
+        if(!jwtService.isValidExpired(token))
+            throw IllegalArgumentException("Token Expired")
+
+        val user = userRepository.findById(UUID.fromString(jwtService.getId(token)))
+            .orElseThrow{ IllegalArgumentException("Запрос от несуществующего пользователя") }
 
 
         val tempStreet: StreetEntity = streetRepository
@@ -80,15 +103,12 @@ class SubscriberService(
             .findById(subscriber.districtId).orElse(null)
 
 
-        existingSubscriber.street = tempStreet
-        existingSubscriber.district = tempDistrict
-        existingSubscriber.name = subscriber.name
-        existingSubscriber.surname = subscriber.surname
-        existingSubscriber.patronymic = subscriber.patronymic
-        existingSubscriber.subAddress = subscriber.subAddress
-        existingSubscriber.building = subscriber.building
+        user.subscriber!!.street = tempStreet
+        user.subscriber!!.district = tempDistrict
+        user.subscriber!!.subAddress = subscriber.subAddress
+        user.subscriber!!.building = subscriber.building
 
-        val subscriberUpdate: SubscriberEntity = subscriberRepository.save(existingSubscriber)
+        val subscriberUpdate: SubscriberEntity = subscriberRepository.save(user.subscriber!!)
 
         tempStreet.subscribers?.add(subscriberUpdate)
         tempDistrict.subscribers?.add(subscriberUpdate)
@@ -98,16 +118,22 @@ class SubscriberService(
 
 
     @Transactional
-    fun delete(id: UUID): SubscriberResponse {
+    fun delete(token: String): SubscriberResponse {
+        if(!jwtService.isValidExpired(token))
+            throw IllegalArgumentException("Token Expired")
 
-        // Найти существующее издание
-        val existingPublication = subscriberRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Subscriber with ID ${id} not found") }
+        val userId =UUID.fromString(jwtService.getId(token))
 
-        // Удалить издание
-        subscriberRepository.deleteById(id)
+        // Найти существующего подписчика
+        val existingSubscriber = userRepository.findById(userId)
+            .orElseThrow { IllegalArgumentException("Subscriber with ID ${userId} not found") }
 
-        return existingPublication.convertToResponseDto()
+        val sub = existingSubscriber.subscriber
+
+        // Удалить подписчика
+        userRepository.deleteById(userId)
+
+        return sub!!.convertToResponseDto()
     }
 
 

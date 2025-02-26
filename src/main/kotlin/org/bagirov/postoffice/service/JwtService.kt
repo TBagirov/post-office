@@ -1,6 +1,8 @@
 package org.bagirov.postoffice.service
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import jakarta.annotation.PostConstruct
 import lombok.RequiredArgsConstructor
@@ -28,7 +30,7 @@ class JwtService(
 
     @PostConstruct
     fun init(){
-        key = Keys.hmacShaKeyFor(jwtProperties.secret.toByteArray())
+        key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.secret))
     }
 
     fun createAccessToken(
@@ -81,44 +83,44 @@ class JwtService(
 //        return authenticationResponse
 //    }
 
-    fun isValid(
-        token: String?,
-        userDetails: UserDetails
-    ): Boolean {
-        val username = getUsername(token!!)
-        val claims = Jwts
-            .parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(token)
-        return claims.payload
-            .expiration
-            .after(Date()) && username == userDetails.username
+
+
+//    fun isValid(
+//        token: String?,
+//        userDetails: UserDetails
+//    ): Boolean {
+//        val username = getUsername(token!!)
+//        val claims = Jwts
+//            .parser()
+//            .verifyWith(key)
+//            .build()
+//            .parseSignedClaims(token)
+//        return claims.payload
+//            .expiration
+//            .after(Date()) && username == userDetails.username
+//    }
+
+
+    private fun extractClaims(token: String): Claims {
+        println("____________________________Extracting claims from token: '$token'") // Отладочный вывод
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
     }
 
-    fun getId(
-        token: String?
-    ): String {
-        return Jwts
-            .parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(token)
-            .payload
-            .get("id", String::class.java)
+    fun getId(token: String?): String = extractClaims(token!!).get("id", String::class.java)
+
+    fun getUsername(token: String): String = extractClaims(token).subject
+
+    fun isValid(token: String?, userDetails: UserDetails): Boolean {
+        if (token == null) return false
+        val claims = extractClaims(token)
+        return claims.expiration.after(Date()) && claims.subject == userDetails.username
     }
 
-    fun getUsername(
-        token: String
-    ): String {
-        return Jwts
-            .parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(token)
-            .payload
-            .subject
+    fun isValidExpired(token: String): Boolean {
+        val claims = extractClaims(token)
+        return claims.expiration.after(Date())
     }
+
 
     fun getAuthentication(
         token: String
@@ -133,6 +135,8 @@ class JwtService(
             userDetails.authorities
         )
     }
+
+
 
 
 }

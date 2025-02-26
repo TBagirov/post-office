@@ -7,9 +7,9 @@ import org.bagirov.postoffice.entity.*
 
 fun PostmanEntity.convertToResponseDto() = PostmanResponse(
     id = this.id!!,
-    name = this.name,
-    surname = this.surname,
-    patronymic = this.patronymic,
+    name = this.user.name,
+    surname = this.user.surname,
+    patronymic = this.user.patronymic,
     regions = this.districts?.map { it -> it.region?.name }
 )
 
@@ -29,12 +29,12 @@ fun RegionEntity.convertToResponseDto() = RegionResponse(
     id = this.id!!,
     name = this.name,
     streets = this.streets?.map { it -> it.name },
-    postmans = this.districts?.map { it -> it.postman?.getFio() }
+    postmans = this.districts?.map { it -> it.postman?.user?.getFio() }
 )
 
 fun DistrictEntity.convertToResponseDto() = DistrictResponse(
     id = this.id!!,
-    postmanName = this.postman?.getFio(),
+    postmanName = this.postman?.user?.getFio(),
     regionName = this.region?.name
 )
 
@@ -60,12 +60,12 @@ fun PublicationTypeEntity.convertToResponseDto() = PublicationTypeResponse(
 
 fun SubscriberEntity.convertToResponseDto() = SubscriberResponse(
     id = this.id!!,
-    name = this.name,
-    surname = this.surname,
-    patronymic = this.patronymic,
+    name = this.user.name,
+    surname = this.user.surname,
+    patronymic = this.user.patronymic,
     building = this.building,
     subAddress = this.subAddress,
-    postmanName = this.district?.postman?.getFio(),
+    postmanName = this.district?.postman?.user?.getFio(),
     regionName = this.district?.region?.name,
     street = this.street?.name
 )
@@ -79,4 +79,7 @@ fun SubscriptionEntity.convertToResponseDto() = SubscriptionResponse(
     price = if(this.publication?.price != null) this.publication!!.price * duration else null
 )
 
-
+fun RoleEntity.convertToResponseDto() = RoleResponse(
+    id = this.id!!,
+    name = this.name
+)

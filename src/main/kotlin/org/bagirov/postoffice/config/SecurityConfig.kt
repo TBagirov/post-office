@@ -28,9 +28,14 @@ class SecurityConfig(
                 authorizationManagerRequestMatcherRegistry
                     .requestMatchers(
                         "/api/authentication/**",
-                        "/api/authentication/who-am-i"
                     )
                     .permitAll()
+                    .requestMatchers("/api/role/**").hasAuthority("ADMIN")
+                    .requestMatchers("/api/postman/**").hasAuthority("ADMIN")
+                    .requestMatchers("/api/report/**").hasAuthority("ADMIN")
+                    .requestMatchers("/api/subscriber/create").hasAuthority("GUEST")
+                    .requestMatchers("/api/subscriber/update").hasAuthority("SUBSCRIBER")
+                    .requestMatchers("/api/subscriber/delete").hasAuthority("SUBSCRIBER")
                     .anyRequest()
                     .authenticated()
             }
