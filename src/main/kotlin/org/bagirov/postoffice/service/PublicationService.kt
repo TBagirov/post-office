@@ -2,18 +2,14 @@ package org.bagirov.postoffice.service
 
 
 import org.bagirov.postoffice.dto.request.PublicationRequest
-import org.bagirov.postoffice.dto.request.PublicationTypeRequest
 import org.bagirov.postoffice.dto.request.update.PublicationUpdateRequest
 import org.bagirov.postoffice.dto.response.PublicationResponse
-import org.bagirov.postoffice.dto.response.PublicationTypeResponse
 import org.bagirov.postoffice.entity.PublicationEntity
 import org.bagirov.postoffice.entity.PublicationTypeEntity
 import org.bagirov.postoffice.repository.PublicationRepository
 import org.bagirov.postoffice.repository.PublicationTypeRepository
 import org.bagirov.postoffice.utill.convertToResponseDto
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Isolation
-import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
@@ -21,10 +17,11 @@ import java.util.*
 class PublicationService(
     private val publicationRepository: PublicationRepository,
     private val publicationTypeRepository: PublicationTypeRepository,
-    private val publicationTypeService: PublicationTypeService
 ) {
 
-    fun getById(id: UUID): PublicationResponse =  publicationRepository.findById(id).orElse(null).convertToResponseDto()
+    fun getById(id: UUID): PublicationResponse =  publicationRepository.findById(id)
+        .orElseThrow{ NoSuchElementException("Publication with ID ${id} not found") }
+        .convertToResponseDto()
 
     fun getAll():List<PublicationResponse> =  publicationRepository.findAll().map { it.convertToResponseDto() }
 
@@ -51,7 +48,7 @@ class PublicationService(
         val publicationSave = publicationRepository.save(publicationNew)
 
         // Добавляем в коллекцию (она уже инициализирована)
-        tempPublicationType?.publications?.add(publicationSave)
+        tempPublicationType.publications?.add(publicationSave)
 
         return publicationSave.convertToResponseDto()
     }
@@ -61,11 +58,11 @@ class PublicationService(
 
         // Найти существующее издание
         val existingPublication = publicationRepository.findById(publication.id)
-            .orElseThrow { IllegalArgumentException("Publication with ID ${publication.id} not found") }
+            .orElseThrow { NoSuchElementException("Publication with ID ${publication.id} not found") }
 
         val tempPublicationType: PublicationTypeEntity? =
             publicationTypeRepository.findById(publication.publicationTypeId)
-                .orElseThrow { IllegalArgumentException("Publication with ID ${publication.id} not found") }
+                .orElseThrow { NoSuchElementException("Publication with ID ${publication.id} not found") }
 
         existingPublication.index = publication.index
         existingPublication.title = publication.title
@@ -84,7 +81,7 @@ class PublicationService(
 
         // Найти существующее издание
         val existingPublication = publicationRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Publication with ID ${id} not found") }
+            .orElseThrow { NoSuchElementException("Publication with ID ${id} not found") }
 
         // Удалить издание
         publicationRepository.deleteById(id)

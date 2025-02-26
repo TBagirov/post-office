@@ -1,11 +1,8 @@
 package org.bagirov.postoffice.service
 
 import org.bagirov.postoffice.dto.request.StreetRequest
-import org.bagirov.postoffice.dto.request.update.DistrictUpdateRequest
 import org.bagirov.postoffice.dto.request.update.StreetUpdateRequest
-import org.bagirov.postoffice.dto.response.DistrictResponse
 import org.bagirov.postoffice.dto.response.StreetResponse
-import org.bagirov.postoffice.entity.PostmanEntity
 import org.bagirov.postoffice.entity.RegionEntity
 import org.bagirov.postoffice.entity.StreetEntity
 import org.bagirov.postoffice.repository.RegionRepository
@@ -23,7 +20,9 @@ class StreetService(
     private val regionRepository: RegionRepository
 ) {
 
-    fun getById(id: UUID): StreetResponse = streetRepository.findById(id).orElse(null).convertToResponseDto()
+    fun getById(id: UUID): StreetResponse = streetRepository.findById(id)
+        .orElseThrow{ NoSuchElementException("Street with ID ${id} not found") }
+        .convertToResponseDto()
 
     fun getAll():List<StreetResponse> = streetRepository.findAll().map {it.convertToResponseDto() }
 
@@ -48,8 +47,8 @@ class StreetService(
     fun update(street: StreetUpdateRequest): StreetResponse {
 
         // Найти существующую улицу
-        val existingStreet = streetRepository.findById(street.id!!)
-            .orElseThrow { IllegalArgumentException("Street with ID ${street.id} not found") }
+        val existingStreet = streetRepository.findById(street.id)
+            .orElseThrow { NoSuchElementException("Street with ID ${street.id} not found") }
 
         val tempRegion: RegionEntity? = regionRepository.findById(street.regionId).orElse(null)
 
@@ -70,7 +69,7 @@ class StreetService(
 
         // Найти существующую улицу
         val existingStreet = streetRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Street with ID ${id} not found") }
+            .orElseThrow { NoSuchElementException("Street with ID ${id} not found") }
 
         // Удалить улицу
         streetRepository.deleteById(id)
@@ -84,7 +83,7 @@ class StreetService(
 
         if(regions.isEmpty()) throw ChangeSetPersister.NotFoundException()
 
-        for(region in regions){
+        for(region in regions) {
 
             if(region.streets == null) continue
 

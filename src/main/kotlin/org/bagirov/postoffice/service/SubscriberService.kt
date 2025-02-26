@@ -1,14 +1,15 @@
 package org.bagirov.postoffice.service
+import io.jsonwebtoken.ExpiredJwtException
 import org.bagirov.postoffice.dto.request.StreetRequest
 import org.bagirov.postoffice.dto.request.SubscriberRequest
 import org.bagirov.postoffice.dto.request.update.SubscriberUpdateRequest
 import org.bagirov.postoffice.dto.response.StreetResponse
 import org.bagirov.postoffice.dto.response.SubscriberResponse
-import org.bagirov.postoffice.entity.*
+import org.bagirov.postoffice.entity.DistrictEntity
+import org.bagirov.postoffice.entity.StreetEntity
+import org.bagirov.postoffice.entity.SubscriberEntity
 import org.bagirov.postoffice.repository.*
 import org.bagirov.postoffice.utill.convertToResponseDto
-import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -24,7 +25,9 @@ class SubscriberService(
     private val jwtService: JwtService,
 ) {
 
-    fun getById(id: UUID): SubscriberResponse = subscriberRepository.findById(id).orElse(null).convertToResponseDto()
+    fun getById(id: UUID): SubscriberResponse = subscriberRepository.findById(id)
+        .orElseThrow{ NoSuchElementException("Subscriber with ID ${id} not found") }
+        .convertToResponseDto()
 
     fun getAll():List<SubscriberResponse> = subscriberRepository.findAll().map {it.convertToResponseDto() }
 
@@ -36,14 +39,16 @@ class SubscriberService(
 //        throw BadCredentialsException("Token cannot be null")
 
 
-        if(!jwtService.isValidExpired(token))
-            throw IllegalArgumentException("Token Expired")
+        if(!jwtService.isValidExpired(token)){
+            val claims = jwtService.extractClaims(token) // Получение claims из токена
+            throw ExpiredJwtException(null, claims, "Token Expired")
+        }
 
         val user = userRepository.findById(UUID.fromString(jwtService.getId(token)))
-            .orElseThrow{ IllegalArgumentException("Запрос от несуществующего пользователя") }
+            .orElseThrow{ NoSuchElementException("Запрос от несуществующего пользователя") }
 
         val roleSubscriber = roleRepository.findByName("SUBSCRIBER") ?:
-            throw IllegalArgumentException("Роли SUBSCRIBER нет в базе данных!")
+            throw NoSuchElementException("Роли SUBSCRIBER нет в базе данных!")
 
         user.role = roleSubscriber
         val userSave = userRepository.save(user)
@@ -68,7 +73,7 @@ class SubscriberService(
             region = districtRes.region
         )
 
-        val subscriberNew = SubscriberEntity(
+        val subscriberNew = SubscriberEntity (
             user = userSave,
             district = districtRes,
             building = subscriberRequest.building,
@@ -89,11 +94,13 @@ class SubscriberService(
     fun update(token: String, subscriber: SubscriberUpdateRequest) : SubscriberResponse {
 
 
-        if(!jwtService.isValidExpired(token))
-            throw IllegalArgumentException("Token Expired")
+        if(!jwtService.isValidExpired(token)){
+            val claims = jwtService.extractClaims(token) // Получение claims из токена
+            throw ExpiredJwtException(null, claims, "Token Expired")
+        }
 
         val user = userRepository.findById(UUID.fromString(jwtService.getId(token)))
-            .orElseThrow{ IllegalArgumentException("Запрос от несуществующего пользователя") }
+            .orElseThrow{ NoSuchElementException("Запрос от несуществующего пользователя") }
 
 
         val tempStreet: StreetEntity = streetRepository

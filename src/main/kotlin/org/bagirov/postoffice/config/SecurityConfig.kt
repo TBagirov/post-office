@@ -1,5 +1,6 @@
 package org.bagirov.postoffice.config
 
+import org.bagirov.postoffice.exception.CustomAccessDeniedHandler
 import org.bagirov.postoffice.service.JwtService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 class SecurityConfig(
     private val userDetailsService: UserDetailsService,
     private val jwtService: JwtService,
+    private val customAccessDeniedHandler: CustomAccessDeniedHandler
 ) {
 
     @Bean
@@ -44,7 +46,10 @@ class SecurityConfig(
                 httpSecuritySessionManagementConfigurer.sessionCreationPolicy(
                     SessionCreationPolicy.STATELESS
                 )
+            }.exceptionHandling { exceptions ->
+                exceptions.accessDeniedHandler(customAccessDeniedHandler) // Используем кастомный обработчик
             }
+
         return http.build()
     }
 }

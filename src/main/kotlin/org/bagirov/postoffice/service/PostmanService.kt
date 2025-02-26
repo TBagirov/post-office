@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.NoSuchElementException
 
 @Service
 class PostmanService(
@@ -23,7 +24,9 @@ class PostmanService(
     private val passwordEncoder: PasswordEncoder,
 ) {
 
-    fun getById(id: UUID): PostmanResponse = postmanRepository.findById(id).orElse(null).convertToResponseDto()
+    fun getById(id: UUID): PostmanResponse = postmanRepository.findById(id)
+        .orElseThrow{ NoSuchElementException("Postman with ID ${id} not found") }
+        .convertToResponseDto()
 
     fun getAll():List<PostmanResponse> = postmanRepository.findAll().map { it.convertToResponseDto() }
 
@@ -67,7 +70,7 @@ class PostmanService(
 
         // Найти существующего почтальона
         val existingPostman = postmanRepository.findById(postman.id!!)
-            .orElseThrow { IllegalArgumentException("Postman with ID ${postman.id} not found") }
+            .orElseThrow { NoSuchElementException("Postman with ID ${postman.id} not found") }
 
 
        postmanRepository.save(existingPostman)
@@ -80,7 +83,7 @@ class PostmanService(
     fun delete(id: UUID): PostmanResponse {
         // Найти существующего почтальона
         val existingPostman = postmanRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Postman with ID ${id} not found") }
+            .orElseThrow { NoSuchElementException("Postman with ID ${id} not found") }
 
         // Отключаем почтальона от пользователя перед удалением
         existingPostman.user.postman = null

@@ -1,7 +1,6 @@
 package org.bagirov.postoffice.service
 
-import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
 import jakarta.annotation.PostConstruct
@@ -101,12 +100,19 @@ class JwtService(
 //    }
 
 
-    private fun extractClaims(token: String): Claims {
-        println("____________________________Extracting claims from token: '$token'") // Отладочный вывод
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
+    fun extractClaims(token: String): Claims {
+        return try {
+             Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
+        } catch (ex: ExpiredJwtException) {
+            throw ex // Пробрасываем дальше, чтобы обработать в GlobalExceptionHandler
+        } catch (ex: MalformedJwtException) {
+            throw JwtException("Malformed JWT token", ex)
+        } catch (ex: JwtException) {
+            throw JwtException("Invalid JWT token", ex)
+        }
     }
 
-    fun getId(token: String?): String = extractClaims(token!!).get("id", String::class.java)
+    fun getId(token: String): String = extractClaims(token).get("id", String::class.java)
 
     fun getUsername(token: String): String = extractClaims(token).subject
 

@@ -1,11 +1,13 @@
 package org.bagirov.postoffice.config
 
 import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.JwtException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.bagirov.postoffice.service.JwtService
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
@@ -48,9 +50,21 @@ class JwtAuthenticationFilter(
             }
 
             filterChain.doFilter(request, response)
+
         } catch (ex: ExpiredJwtException) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Срок действия токена истек")
-            return
+            handleException(response, "The token has expired", HttpServletResponse.SC_UNAUTHORIZED)
+        } catch (ex: JwtException) {
+            handleException(response, "Invalid JWT token", HttpServletResponse.SC_UNAUTHORIZED)
+        } catch (ex: AuthenticationException) {
+            handleException(response, "Authentication failed", HttpServletResponse.SC_UNAUTHORIZED)
+        } catch (ex: Exception) {
+            handleException(response, "Unexpected Error", HttpServletResponse.SC_UNAUTHORIZED)
         }
+    }
+
+    private fun handleException(response: HttpServletResponse, message: String, status: Int) {
+        response.status = status
+        response.contentType = "application/json"
+        response.writer.write("""{"error": "$message"}""")
     }
 }

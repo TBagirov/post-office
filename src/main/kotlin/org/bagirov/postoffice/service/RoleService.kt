@@ -14,7 +14,10 @@ class RoleService(
 ) {
 
 
-    fun getById(id: UUID): RoleResponse = roleRepository.findById(id).orElse(null).convertToResponseDto()
+    fun getById(id: UUID): RoleResponse = roleRepository.findById(id)
+        .orElseThrow{ NoSuchElementException("Role with ID ${id} not found") }
+        .convertToResponseDto()
+
     fun getAll(): List<RoleResponse> = roleRepository.findAll().map{it.convertToResponseDto()}
 
     @Transactional

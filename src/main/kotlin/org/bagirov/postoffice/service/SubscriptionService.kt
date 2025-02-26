@@ -25,7 +25,9 @@ class SubscriptionService(
     private val publicationRepository: PublicationRepository,
 ) {
 
-    fun getById(id: UUID): SubscriptionResponse = subscriptionRepository.findById(id).orElse(null).convertToResponseDto()
+    fun getById(id: UUID): SubscriptionResponse = subscriptionRepository.findById(id)
+        .orElseThrow{ NoSuchElementException("Subscription with ID ${id} not found") }
+        .convertToResponseDto()
 
     fun getAll():List<SubscriptionResponse> = subscriptionRepository.findAll().map{ it.convertToResponseDto()}
 
@@ -58,7 +60,7 @@ class SubscriptionService(
 
         // Найти существующего подписчика
         val existingSubscription = subscriptionRepository.findById(subscription.id)
-            .orElseThrow { IllegalArgumentException("Subscription with ID ${subscription.id} not found") }
+            .orElseThrow { NoSuchElementException("Subscription with ID ${subscription.id} not found") }
 
         val tempSubscriber: SubscriberEntity = subscriberRepository
             .findById(subscription.subscriberId).orElse(null)
@@ -84,7 +86,7 @@ class SubscriptionService(
 
         // Найти существующую подписку
         val existingSubscription = subscriptionRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Subscription with ID ${id} not found") }
+            .orElseThrow { NoSuchElementException("Subscription with ID ${id} not found") }
 
         // Удалить издание
         subscriptionRepository.deleteById(id)
