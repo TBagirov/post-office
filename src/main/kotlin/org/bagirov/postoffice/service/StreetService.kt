@@ -4,7 +4,6 @@ import org.bagirov.postoffice.dto.request.StreetRequest
 import org.bagirov.postoffice.dto.request.update.StreetUpdateRequest
 import org.bagirov.postoffice.dto.response.StreetResponse
 import org.bagirov.postoffice.entity.RegionEntity
-import org.bagirov.postoffice.entity.StreetEntity
 import org.bagirov.postoffice.repository.RegionRepository
 import org.bagirov.postoffice.repository.StreetRepository
 import org.bagirov.postoffice.utill.convertToEntity

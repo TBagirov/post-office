@@ -1,6 +1,5 @@
 package org.bagirov.postoffice.service
 
-import io.jsonwebtoken.ExpiredJwtException
 import org.bagirov.postoffice.dto.request.StreetRequest
 import org.bagirov.postoffice.dto.request.SubscriberRequest
 import org.bagirov.postoffice.dto.request.update.SubscriberUpdateRequest

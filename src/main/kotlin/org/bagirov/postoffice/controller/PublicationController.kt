@@ -7,7 +7,6 @@ import mu.KotlinLogging
 import org.bagirov.postoffice.dto.request.PublicationRequest
 import org.bagirov.postoffice.dto.request.update.PublicationUpdateRequest
 import org.bagirov.postoffice.dto.response.PublicationResponse
-import org.bagirov.postoffice.entity.PublicationEntity
 import org.bagirov.postoffice.service.PublicationService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*

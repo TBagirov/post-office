@@ -3,7 +3,6 @@ package org.bagirov.postoffice.service
 import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
-import jakarta.annotation.PostConstruct
 import lombok.RequiredArgsConstructor
 import org.bagirov.postoffice.entity.UserEntity
 import org.bagirov.postoffice.props.JwtProperties

@@ -20,10 +20,8 @@ import java.util.*
 @Service
 class SubscriptionService(
     private val subscriptionRepository: SubscriptionRepository,
-    private val subscriberRepository: SubscriberRepository,
     private val publicationRepository: PublicationRepository,
     private val userRepository: UserRepository,
-    private val jwtService: JwtService
 ) {
 
     fun getById(id: UUID): SubscriptionResponse =

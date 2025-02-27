@@ -38,7 +38,7 @@ class DistrictService(
         val tempPostman: PostmanEntity? = postmanRepository.findById(districtRequest.postmanId)
             .orElseThrow { NoSuchElementException("Postman with ID ${districtRequest.postmanId} not found") }
 
-        val district: DistrictEntity = DistrictEntity(
+        val district = DistrictEntity(
             region = tempRegion,
             postman = tempPostman
         )

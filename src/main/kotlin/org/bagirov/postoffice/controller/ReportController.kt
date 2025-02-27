@@ -3,12 +3,14 @@ package org.bagirov.postoffice.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import mu.KotlinLogging
+import org.apache.commons.math3.exception.NoDataException
 import org.bagirov.postoffice.service.ReportService
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -32,13 +34,7 @@ class ReportController (
         log.info { "Request get Report on Subscriptions" }
 
         val excelFile: ByteArray? = reportService.subscriptionReport()
-        val headers: HttpHeaders = HttpHeaders()
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM)
-
-        val nameFile = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd__HH.mm"))
-        val typeFile = ".xlsx"
-
-        headers.setContentDispositionFormData("attachment", nameFile + typeFile)
+        val headers = generateHeadersFile()
         return ResponseEntity<ByteArray>(excelFile, headers, HttpStatus.OK)
     }
 
@@ -50,14 +46,10 @@ class ReportController (
     fun getReportPublications(): ResponseEntity<ByteArray> {
         log.info { "Request get Report on Publications" }
 
-        val excelFile: ByteArray? = reportService.publicationReport()
-        val headers: HttpHeaders = HttpHeaders()
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM)
+        val excelFile: ByteArray = reportService.publicationReport()
+            ?: throw Exception("Failed to create Excel file")
 
-        val nameFile = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd__HH.mm"))
-        val typeFile = ".xlsx"
-
-        headers.setContentDispositionFormData("attachment", nameFile + typeFile)
+        val headers = generateHeadersFile()
         return ResponseEntity<ByteArray>(excelFile, headers, HttpStatus.OK)
     }
 
@@ -69,15 +61,21 @@ class ReportController (
     fun getReportSubscriptionsBySubscriberId(@RequestParam id: UUID): ResponseEntity<ByteArray> {
         log.info { "Request get Report on Subscription  by id: $id" }
 
-        val excelFile: ByteArray? = reportService.subscriptionByIdSubscriberReport(id)
-        val headers: HttpHeaders = HttpHeaders()
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM)
+        val excelFile: ByteArray = reportService.subscriptionByIdSubscriberReport(id)
+            ?: throw Exception("Failed to create Excel file")
+
+        val headers = generateHeadersFile()
+        return ResponseEntity<ByteArray>(excelFile, headers, HttpStatus.OK)
+    }
+
+    private fun generateHeadersFile(): HttpHeaders {
+        val headers = HttpHeaders()
+        headers.contentType = MediaType.APPLICATION_OCTET_STREAM
 
         val nameFile = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd__HH.mm"))
         val typeFile = ".xlsx"
 
         headers.setContentDispositionFormData("attachment", nameFile + typeFile)
-        return ResponseEntity<ByteArray>(excelFile, headers, HttpStatus.OK)
+        return headers
     }
-
 }
