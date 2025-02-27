@@ -8,7 +8,6 @@ import org.bagirov.postoffice.entity.PublicationEntity
 import org.bagirov.postoffice.entity.SubscriptionEntity
 import org.bagirov.postoffice.entity.UserEntity
 import org.bagirov.postoffice.repository.PublicationRepository
-import org.bagirov.postoffice.repository.SubscriberRepository
 import org.bagirov.postoffice.repository.SubscriptionRepository
 import org.bagirov.postoffice.repository.UserRepository
 import org.bagirov.postoffice.utill.convertToResponseDto
