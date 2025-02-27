@@ -47,9 +47,9 @@ class SubscriptionController(
         summary = "Добавление подписки",
         description = "Добавление данных о подписке"
     )
-    fun save(@RequestBody subscription: SubscriptionRequest): ResponseEntity<SubscriptionResponse> {
+    fun save(@RequestHeader("Authorization") token: String,  @RequestBody subscription: SubscriptionRequest): ResponseEntity<SubscriptionResponse> {
         log.info { "Request create Subscription" }
-        return ResponseEntity.ok(subscriptionService.save(subscription))
+        return ResponseEntity.ok(subscriptionService.save(token.substring(7), subscription))
     }
 
     @PutMapping()
@@ -57,9 +57,9 @@ class SubscriptionController(
         summary = "Редактирование подписки по id",
         description = "Редактирование данных подписки по id"
     )
-    fun update(@RequestBody subscription: SubscriptionUpdateRequest): ResponseEntity<SubscriptionResponse> {
+    fun update(@RequestHeader("Authorization") token: String, @RequestBody subscription: SubscriptionUpdateRequest): ResponseEntity<SubscriptionResponse> {
         log.info { "Request update Subscription by id: ${subscription.id}" }
-        return ResponseEntity.ok(subscriptionService.update(subscription))
+        return ResponseEntity.ok(subscriptionService.update(token.substring(7), subscription))
     }
 
     @DeleteMapping()

@@ -38,6 +38,8 @@ class SecurityConfig(
                     .requestMatchers("/api/subscriber/create").hasAuthority("GUEST")
                     .requestMatchers("/api/subscriber/update").hasAuthority("SUBSCRIBER")
                     .requestMatchers("/api/subscriber/delete").hasAuthority("SUBSCRIBER")
+                    .requestMatchers("/api/publication-type/**").hasAuthority("ADMIN")
+                    .requestMatchers("/api/publication/**").hasAuthority("ADMIN")
                     .anyRequest()
                     .authenticated()
             }

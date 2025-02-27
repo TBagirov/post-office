@@ -10,6 +10,7 @@ import org.bagirov.postoffice.entity.SubscriptionEntity
 import org.bagirov.postoffice.repository.PublicationRepository
 import org.bagirov.postoffice.repository.SubscriberRepository
 import org.bagirov.postoffice.repository.SubscriptionRepository
+import org.bagirov.postoffice.repository.UserRepository
 import org.bagirov.postoffice.utill.convertToResponseDto
 import org.hibernate.boot.model.naming.Identifier
 import org.hibernate.boot.spi.InFlightMetadataCollector.DuplicateSecondaryTableException
@@ -23,6 +24,8 @@ class SubscriptionService(
     private val subscriptionRepository: SubscriptionRepository,
     private val subscriberRepository: SubscriberRepository,
     private val publicationRepository: PublicationRepository,
+    private val userRepository: UserRepository,
+    private val jwtService: JwtService
 ) {
 
     fun getById(id: UUID): SubscriptionResponse = subscriptionRepository.findById(id)
@@ -32,8 +35,13 @@ class SubscriptionService(
     fun getAll():List<SubscriptionResponse> = subscriptionRepository.findAll().map{ it.convertToResponseDto()}
 
     @Transactional
-    fun save(subscriptionRequest: SubscriptionRequest): SubscriptionResponse {
-        val tempSubscriber: SubscriberEntity = subscriberRepository.findById(subscriptionRequest.subscriberId).orElse(null)
+    fun save(token: String, subscriptionRequest: SubscriptionRequest): SubscriptionResponse {
+
+        val user = userRepository.findById(UUID.fromString(jwtService.getId(token)))
+            .orElseThrow{ NoSuchElementException("Запрос от несуществующего пользователя") }
+
+
+        val tempSubscriber: SubscriberEntity = subscriberRepository.findById(user.subscriber?.id!!).orElse(null)
         val tempPublication: PublicationEntity = publicationRepository.findById(subscriptionRequest.publicationId).orElse(null)
 
         if(subscriptionRepository.findBySubscriberAndPublication(tempSubscriber, tempPublication) != null)
@@ -56,14 +64,16 @@ class SubscriptionService(
     }
 
     @Transactional
-    fun update(subscription: SubscriptionUpdateRequest) : SubscriptionResponse {
+    fun update(token: String, subscription: SubscriptionUpdateRequest) : SubscriptionResponse {
+        val user = userRepository.findById(UUID.fromString(jwtService.getId(token)))
+            .orElseThrow{ NoSuchElementException("Запрос от несуществующего пользователя") }
 
         // Найти существующего подписчика
         val existingSubscription = subscriptionRepository.findById(subscription.id)
             .orElseThrow { NoSuchElementException("Subscription with ID ${subscription.id} not found") }
 
         val tempSubscriber: SubscriberEntity = subscriberRepository
-            .findById(subscription.subscriberId).orElse(null)
+            .findById(user.subscriber?.id!!).orElse(null)
 
         val tempPublication: PublicationEntity = publicationRepository
             .findById(subscription.publicationId).orElse(null)
