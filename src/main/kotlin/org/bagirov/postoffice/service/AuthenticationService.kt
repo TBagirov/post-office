@@ -1,6 +1,7 @@
 package org.bagirov.postoffice.service
 
 
+import io.jsonwebtoken.JwtException
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.bagirov.postoffice.dto.auth.AuthenticationRequest
@@ -19,7 +20,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDateTime
 
 @Service
@@ -35,7 +35,7 @@ class AuthenticationService(
     @Transactional
     fun authorization(request: AuthenticationRequest, response: HttpServletResponse): AuthenticationResponse {
         if (!isValidAuthenticationCredentials(request)) {
-            throw Exception("Поля логин и/или пароль пустые")
+            throw IllegalArgumentException("Поля логин и/или пароль пустые")
         }
         authenticationManager.authenticate(UsernamePasswordAuthenticationToken(request.username, request.password))
         val user = userRepository.findByUsername(request.username)
@@ -64,14 +64,14 @@ class AuthenticationService(
     @Transactional
     fun registration(request: RegistrationRequest, response: HttpServletResponse): AuthenticationResponse {
         if (!isValidRegistrationCredentials(request)) {
-            throw Exception("Заполнены не все данные!!!")
+            throw IllegalArgumentException("Заполнены не все данные!!!")
         }
 
         val users = userRepository.findAll()
 
         users.forEach { user ->
             if (request.username == user.username) {
-                throw NoSuchElementException("Пользователь с таким username уже существует")
+                throw IllegalArgumentException("Пользователь с таким username уже существует")
             }
         }
 
@@ -129,7 +129,7 @@ class AuthenticationService(
     @Transactional
     fun refresh(userToken: String, response: HttpServletResponse): AuthenticationResponse {
         if (userToken.isEmpty()) {
-            throw Exception("Token is empty")
+            throw JwtException("Token is empty")
         }
 
         val username = jwtService.getUsername(userToken)
@@ -146,7 +146,7 @@ class AuthenticationService(
         }
 
         if (!isValidToken) {
-            throw Exception("Token not valid")
+            throw JwtException("Token not valid")
         }
 
         val accessToken = jwtService.createAccessToken(user)

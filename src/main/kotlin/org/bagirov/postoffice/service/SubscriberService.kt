@@ -47,12 +47,6 @@ class SubscriberService(
         val user = userRepository.findById(UUID.fromString(jwtService.getId(token)))
             .orElseThrow{ NoSuchElementException("Запрос от несуществующего пользователя") }
 
-        val roleSubscriber = roleRepository.findByName("SUBSCRIBER") ?:
-            throw NoSuchElementException("Роли SUBSCRIBER нет в базе данных!")
-
-        user.role = roleSubscriber
-        val userSave = userRepository.save(user)
-        roleSubscriber.users?.add(userSave)
 
         val tempStreet: StreetEntity? = streetRepository.findByName(subscriberRequest.street)
 
@@ -65,6 +59,7 @@ class SubscriberService(
 
         // TODO: если улицы не существует и она добавилась и попала в район которому не назначен почтальон,
         //  т.е. этого региона нет в district, то летит ошибка 500
+
         val districtRes: DistrictEntity = districtRepository.findByRegionName(street.regionName!!).orElse(null).random()
 
         val streetEntity: StreetEntity = StreetEntity(
@@ -74,7 +69,7 @@ class SubscriberService(
         )
 
         val subscriberNew = SubscriberEntity (
-            user = userSave,
+            user = user,
             district = districtRes,
             building = subscriberRequest.building,
             subAddress = subscriberRequest.subAddress,
@@ -82,6 +77,14 @@ class SubscriberService(
         )
 
         val subscriberSave:SubscriberEntity = subscriberRepository.save(subscriberNew)
+
+
+        val roleSubscriber = roleRepository.findByName("SUBSCRIBER") ?:
+        throw NoSuchElementException("Роли SUBSCRIBER нет в базе данных!")
+
+        user.role = roleSubscriber
+        val userSave = userRepository.save(user)
+        roleSubscriber.users?.add(userSave)
 
         districtRes.subscribers?.add(subscriberSave)
         streetEntity.subscribers?.add(subscriberSave)

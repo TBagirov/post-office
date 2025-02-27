@@ -31,6 +31,7 @@ class DistrictService(
 
     @Transactional
     fun save(districtRequest: DistrictRequest) : DistrictResponse {
+
         val tempRegion: RegionEntity? = regionRepository.findById(districtRequest.regionId)
             .orElseThrow{ NoSuchElementException("District with ID ${districtRequest.regionId} not found") }
 
@@ -50,11 +51,17 @@ class DistrictService(
         return district.convertToResponseDto()
     }
 
+    fun saveOnlyRegion(region: RegionEntity){
+        districtRepository.save(DistrictEntity(region = region))
+    }
+
+
+
     @Transactional
     fun update(district: DistrictUpdateRequest): DistrictResponse {
 
         // Найти существующее отношение почтальонов к районам
-        val existingDistrict = districtRepository.findById(district.id!!)
+        val existingDistrict = districtRepository.findById(district.id)
             .orElseThrow { NoSuchElementException("District with ID ${district.id} not found") }
 
         val tempRegion: RegionEntity? = regionRepository.findById(district.regionId).orElse(null)

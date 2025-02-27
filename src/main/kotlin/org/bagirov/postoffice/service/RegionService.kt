@@ -11,7 +11,8 @@ import java.util.*
 
 @Service
 class RegionService(
-    private val regionRepository: RegionRepository
+    private val regionRepository: RegionRepository,
+    private val districtService: DistrictService
 ) {
 
     fun getById(id: UUID): RegionResponse = regionRepository.findById(id)
@@ -21,12 +22,18 @@ class RegionService(
     fun getAll():List<RegionResponse> = regionRepository.findAll().map{ it.convertToResponseDto()}
 
     @Transactional
-    fun save(region: RegionEntity):RegionResponse {
-
+    fun saveEnt(region: RegionEntity):RegionEntity {
 
         val regionSave = regionRepository.save(region)
 
-       return regionSave.convertToResponseDto()
+        districtService.saveOnlyRegion(regionSave)
+
+       return region
+    }
+
+    @Transactional
+    fun save(region: RegionEntity): RegionResponse {
+        return saveEnt(region).convertToResponseDto()
     }
 
     @Transactional
@@ -41,8 +48,6 @@ class RegionService(
         // Выполнить обновление в базе данных
         regionRepository.save(existingRegion)
 
-
-
         return existingRegion.convertToResponseDto()
     }
 
@@ -52,6 +57,13 @@ class RegionService(
         // Найти существующий регион
         val existingRegion = regionRepository.findById(id)
             .orElseThrow { NoSuchElementException("Region with ID ${id} not found") }
+
+        // Обнуляем ссылку для каждой улицы, чтобы удалить связь с регионом
+        existingRegion.streets?.forEach { street ->
+            street.region = null
+        }
+
+        existingRegion.streets?.clear()
 
         // Удалить регион
         regionRepository.deleteById(id)

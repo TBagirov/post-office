@@ -18,7 +18,7 @@ data class RegionEntity(
     @OneToMany(mappedBy = "region")
     var streets: MutableSet<StreetEntity>? = null,
 
-    @OneToMany(mappedBy = "region")
+    @OneToMany(mappedBy = "region", cascade = [CascadeType.REMOVE], orphanRemoval = true)
     var districts: MutableList<DistrictEntity>? = null
 
 ){

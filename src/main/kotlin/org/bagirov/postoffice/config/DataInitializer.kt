@@ -1,9 +1,7 @@
 package org.bagirov.postoffice.config
 
-import org.bagirov.postoffice.entity.PostmanEntity
 import org.bagirov.postoffice.entity.RoleEntity
 import org.bagirov.postoffice.entity.UserEntity
-import org.bagirov.postoffice.repository.PostmanRepository
 import org.bagirov.postoffice.repository.RoleRepository
 import org.bagirov.postoffice.repository.UserRepository
 import org.springframework.boot.CommandLineRunner
@@ -23,6 +21,7 @@ class DataInitializer(
         val roleAll = roleRepository.findAll()
         roleAll.find { it.name == "GUEST" } ?: roleRepository.save(RoleEntity(name = "GUEST"))
         roleAll.find { it.name == "SUBSCRIBER" } ?: roleRepository.save(RoleEntity(name = "SUBSCRIBER"))
+        roleAll.find { it.name == "POSTMAN" } ?: roleRepository.save(RoleEntity(name = "POSTMAN"))
 
         val userAll = userRepository.findAll()
         val id = userAll.find { it.role.name == "ADMIN" }

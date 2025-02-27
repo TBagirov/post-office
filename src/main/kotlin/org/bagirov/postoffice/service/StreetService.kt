@@ -9,7 +9,6 @@ import org.bagirov.postoffice.repository.RegionRepository
 import org.bagirov.postoffice.repository.StreetRepository
 import org.bagirov.postoffice.utill.convertToEntity
 import org.bagirov.postoffice.utill.convertToResponseDto
-import org.springframework.data.crossstore.ChangeSetPersister
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -17,7 +16,8 @@ import java.util.*
 @Service
 class StreetService(
     private val streetRepository: StreetRepository,
-    private val regionRepository: RegionRepository
+    private val regionRepository: RegionRepository,
+    private val regionService: RegionService
 ) {
 
     fun getById(id: UUID): StreetResponse = streetRepository.findById(id)
@@ -81,7 +81,9 @@ class StreetService(
     private fun findNearestRegion(streetName: String): RegionEntity {
         val regions = regionRepository.findAll()
 
-        if(regions.isEmpty()) throw ChangeSetPersister.NotFoundException()
+        if(regions.isEmpty()) {
+            return regionService.saveEnt(RegionEntity(name = "Region1"))
+        }
 
         for(region in regions) {
 

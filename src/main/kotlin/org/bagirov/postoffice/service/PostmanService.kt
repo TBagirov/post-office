@@ -37,7 +37,7 @@ class PostmanService(
 
         users.forEach { user ->
             if (request.username == user.username) {
-                throw NoSuchElementException("Пользователь с таким username уже существует")
+                throw IllegalArgumentException("Пользователь с таким username уже существует")
             }
         }
 
