@@ -16,18 +16,20 @@ class PublicationTypeService(
 ) {
 
     fun getById(id: UUID): PublicationTypeResponse = publicationTypeRepository.findById(id)
-        .orElseThrow{ NoSuchElementException("PublicationType with ID ${id} not found") }
+        .orElseThrow { NoSuchElementException("PublicationType with ID ${id} not found") }
         .convertToResponseDto()
 
-    fun getAll():List<PublicationTypeResponse> = publicationTypeRepository.findAll().map { it.convertToResponseDto() }
+    fun getAll(): List<PublicationTypeResponse> = publicationTypeRepository.findAll().map { it.convertToResponseDto() }
 
 
     @Transactional
     fun save(publicationType: PublicationTypeRequest): PublicationTypeResponse {
 
-        val savePublicationType = publicationTypeRepository.save(PublicationTypeEntity(
-           type = publicationType.type
-        ))
+        val savePublicationType = publicationTypeRepository.save(
+            PublicationTypeEntity(
+                type = publicationType.type
+            )
+        )
 
         return savePublicationType.convertToResponseDto()
     }
@@ -53,8 +55,10 @@ class PublicationTypeService(
         val existingPublicationType = publicationTypeRepository.findById(id)
             .orElseThrow { NoSuchElementException("Publication Type with ID ${id} not found") }
 
+        existingPublicationType.publications?.map { it.publicationType = null }
+
         // Удалить тип издания
-        publicationTypeRepository.deleteById(id)
+        publicationTypeRepository.delete(existingPublicationType)
 
         return existingPublicationType.convertToResponseDto()
     }

@@ -18,7 +18,6 @@ import mu.KotlinLogging
 class DistrictController(
     private val districtService: DistrictService
 ) {
-
     private val log = KotlinLogging.logger {}
 
     @GetMapping("/{id}")

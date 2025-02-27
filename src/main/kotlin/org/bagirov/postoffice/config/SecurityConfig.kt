@@ -1,6 +1,7 @@
 package org.bagirov.postoffice.config
 
 import org.bagirov.postoffice.exception.CustomAccessDeniedHandler
+import org.bagirov.postoffice.props.Role
 import org.bagirov.postoffice.service.JwtService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -19,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 class SecurityConfig(
     private val userDetailsService: UserDetailsService,
     private val jwtService: JwtService,
-    private val customAccessDeniedHandler: CustomAccessDeniedHandler
+    private val customAccessDeniedHandler: CustomAccessDeniedHandler,
 ) {
 
     @Bean
@@ -32,14 +33,16 @@ class SecurityConfig(
                         "/api/authentication/**",
                     )
                     .permitAll()
-                    .requestMatchers("/api/role/**").hasAuthority("ADMIN")
-                    .requestMatchers("/api/postman/**").hasAuthority("ADMIN")
-                    .requestMatchers("/api/report/**").hasAuthority("ADMIN")
-                    .requestMatchers("/api/subscriber/create").hasAuthority("GUEST")
-                    .requestMatchers("/api/subscriber/update").hasAuthority("SUBSCRIBER")
-                    .requestMatchers("/api/subscriber/delete").hasAuthority("SUBSCRIBER")
-                    .requestMatchers("/api/publication-type/**").hasAuthority("ADMIN")
-                    .requestMatchers("/api/publication/**").hasAuthority("ADMIN")
+                    .requestMatchers("/api/role/**").hasAuthority(Role.ADMIN)
+                    .requestMatchers("/api/postman/**").hasAuthority(Role.ADMIN)
+                    .requestMatchers("/api/report/**").hasAuthority(Role.ADMIN)
+                    .requestMatchers("/api/subscriber/create").hasAuthority(Role.GUEST)
+                    .requestMatchers("/api/subscriber/update").hasAuthority(Role.SUBSCRIBER)
+                    .requestMatchers("/api/subscriber/delete").hasAuthority(Role.SUBSCRIBER)
+                    .requestMatchers("/api/publication-type/**").hasAuthority(Role.ADMIN)
+                    .requestMatchers("/api/publication/**").hasAuthority(Role.ADMIN)
+                    .requestMatchers("/api/subscription/create").hasAuthority(Role.SUBSCRIBER)
+                    .requestMatchers("/api/subscription/update").hasAuthority(Role.SUBSCRIBER)
                     .anyRequest()
                     .authenticated()
             }

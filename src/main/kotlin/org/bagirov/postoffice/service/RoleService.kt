@@ -12,18 +12,21 @@ import java.util.*
 class RoleService(
     private val roleRepository: RoleRepository
 ) {
+    fun getById(id: UUID): RoleResponse =
+        roleRepository.findById(id)
+            .orElseThrow { NoSuchElementException("Role with ID ${id} not found") }
+            .convertToResponseDto()
 
-
-    fun getById(id: UUID): RoleResponse = roleRepository.findById(id)
-        .orElseThrow{ NoSuchElementException("Role with ID ${id} not found") }
-        .convertToResponseDto()
-
-    fun getAll(): List<RoleResponse> = roleRepository.findAll().map{it.convertToResponseDto()}
+    fun getAll(): List<RoleResponse> =
+        roleRepository.findAll().map { it.convertToResponseDto() }
 
     @Transactional
-    fun save(roleName: String) = roleRepository.save(RoleEntity(name = roleName)).convertToResponseDto()
+    fun save(roleName: String) =
+        roleRepository.save(
+            RoleEntity(name = roleName)
+        ).convertToResponseDto()
 
-    fun delete(id: UUID): RoleResponse{
+    fun delete(id: UUID): RoleResponse {
         val existingRole = roleRepository.findById(id)
             .orElseThrow { IllegalArgumentException("Role with ID ${id} not found") }
 

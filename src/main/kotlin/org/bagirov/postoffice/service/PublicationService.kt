@@ -19,28 +19,25 @@ class PublicationService(
     private val publicationTypeRepository: PublicationTypeRepository,
 ) {
 
-    fun getById(id: UUID): PublicationResponse =  publicationRepository.findById(id)
-        .orElseThrow{ NoSuchElementException("Publication with ID ${id} not found") }
-        .convertToResponseDto()
+    fun getById(id: UUID): PublicationResponse =
+        publicationRepository.findById(id)
+            .orElseThrow { NoSuchElementException("Publication with ID ${id} not found") }
+            .convertToResponseDto()
 
-    fun getAll():List<PublicationResponse> =  publicationRepository.findAll().map { it.convertToResponseDto() }
+    fun getAll(): List<PublicationResponse> =
+        publicationRepository.findAll().map { it.convertToResponseDto() }
 
     @Transactional
     fun save(publication: PublicationRequest): PublicationResponse {
-        var tempPublicationType = publicationTypeRepository.findByType(publication.publicationType)
 
-        if (tempPublicationType == null) {
-            tempPublicationType = PublicationTypeEntity (
-                type = publication.publicationType
-            )
-            tempPublicationType = publicationTypeRepository.save(tempPublicationType) // Сохраняем сразу
-        }
-
+        // Если тип издания существует, используем его, иначе создаем новый.
+        val publicationType = publicationTypeRepository.findByType(publication.publicationType)
+            ?: publicationTypeRepository.save(PublicationTypeEntity(type = publication.publicationType))
 
         val publicationNew = PublicationEntity(
             index = publication.index,
             title = publication.title,
-            publicationType = tempPublicationType,
+            publicationType = publicationType,
             price = publication.price
         )
 
@@ -48,13 +45,13 @@ class PublicationService(
         val publicationSave = publicationRepository.save(publicationNew)
 
         // Добавляем в коллекцию (она уже инициализирована)
-        tempPublicationType.publications?.add(publicationSave)
+        publicationType.publications?.add(publicationSave)
 
         return publicationSave.convertToResponseDto()
     }
 
     @Transactional
-    fun update(publication: PublicationUpdateRequest) : PublicationResponse {
+    fun update(publication: PublicationUpdateRequest): PublicationResponse {
 
         // Найти существующее издание
         val existingPublication = publicationRepository.findById(publication.id)
@@ -69,11 +66,12 @@ class PublicationService(
         existingPublication.price = publication.price
         existingPublication.publicationType = tempPublicationType
 
-        publicationRepository.save(existingPublication)
+        val savePublication = publicationRepository.save(existingPublication)
 
-        tempPublicationType?.publications?.add(existingPublication)
+        if (tempPublicationType?.publications?.contains(savePublication) == true)
+            tempPublicationType.publications?.add(savePublication)
 
-        return existingPublication.convertToResponseDto()
+        return savePublication.convertToResponseDto()
     }
 
     @Transactional
@@ -84,7 +82,7 @@ class PublicationService(
             .orElseThrow { NoSuchElementException("Publication with ID ${id} not found") }
 
         // Удалить издание
-        publicationRepository.deleteById(id)
+        publicationRepository.delete(existingPublication)
 
         return existingPublication.convertToResponseDto()
     }

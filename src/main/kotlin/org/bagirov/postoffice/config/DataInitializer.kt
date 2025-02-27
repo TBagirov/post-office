@@ -2,6 +2,7 @@ package org.bagirov.postoffice.config
 
 import org.bagirov.postoffice.entity.RoleEntity
 import org.bagirov.postoffice.entity.UserEntity
+import org.bagirov.postoffice.props.Role
 import org.bagirov.postoffice.repository.RoleRepository
 import org.bagirov.postoffice.repository.UserRepository
 import org.springframework.boot.CommandLineRunner
@@ -19,15 +20,16 @@ class DataInitializer(
     override fun run(vararg args: String?) {
 
         val roleAll = roleRepository.findAll()
-        roleAll.find { it.name == "GUEST" } ?: roleRepository.save(RoleEntity(name = "GUEST"))
-        roleAll.find { it.name == "SUBSCRIBER" } ?: roleRepository.save(RoleEntity(name = "SUBSCRIBER"))
-        roleAll.find { it.name == "POSTMAN" } ?: roleRepository.save(RoleEntity(name = "POSTMAN"))
+        roleAll.find { it.name == Role.GUEST } ?: roleRepository.save(RoleEntity(name = Role.GUEST))
+        roleAll.find { it.name == Role.SUBSCRIBER } ?: roleRepository.save(RoleEntity(name = Role.SUBSCRIBER))
+        roleAll.find { it.name == Role.POSTMAN} ?: roleRepository.save(RoleEntity(name = Role.POSTMAN))
+
 
         val userAll = userRepository.findAll()
-        val id = userAll.find { it.role.name == "ADMIN" }
+        val id = userAll.find { it.role.name == Role.ADMIN }
         if (id == null) {
 
-            val roleAdmin = roleAll.find { it.name == "ADMIN" } ?: roleRepository.save(RoleEntity(name = "ADMIN"))
+            val roleAdmin = roleAll.find { it.name == Role.ADMIN } ?: roleRepository.save(RoleEntity(name = Role.ADMIN))
 
             val user = UserEntity(
                 username = "admin",

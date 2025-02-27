@@ -12,7 +12,6 @@ import java.util.*
 class RoleController(
     private val roleService: RoleService
 ) {
-
     private val log = KotlinLogging.logger {}
 
     @GetMapping("/{id}")

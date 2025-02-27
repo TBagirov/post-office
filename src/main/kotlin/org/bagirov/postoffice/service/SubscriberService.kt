@@ -1,4 +1,5 @@
 package org.bagirov.postoffice.service
+
 import io.jsonwebtoken.ExpiredJwtException
 import org.bagirov.postoffice.dto.request.StreetRequest
 import org.bagirov.postoffice.dto.request.SubscriberRequest
@@ -8,6 +9,8 @@ import org.bagirov.postoffice.dto.response.SubscriberResponse
 import org.bagirov.postoffice.entity.DistrictEntity
 import org.bagirov.postoffice.entity.StreetEntity
 import org.bagirov.postoffice.entity.SubscriberEntity
+import org.bagirov.postoffice.entity.UserEntity
+import org.bagirov.postoffice.props.Role
 import org.bagirov.postoffice.repository.*
 import org.bagirov.postoffice.utill.convertToResponseDto
 import org.springframework.stereotype.Service
@@ -22,67 +25,53 @@ class SubscriberService(
     private val streetService: StreetService,
     private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
-    private val jwtService: JwtService,
 ) {
 
-    fun getById(id: UUID): SubscriberResponse = subscriberRepository.findById(id)
-        .orElseThrow{ NoSuchElementException("Subscriber with ID ${id} not found") }
-        .convertToResponseDto()
+    fun getById(id: UUID): SubscriberResponse =
+        subscriberRepository
+            .findById(id)
+            .orElseThrow { NoSuchElementException("Subscriber with ID ${id} not found") }
+            .convertToResponseDto()
 
-    fun getAll():List<SubscriberResponse> = subscriberRepository.findAll().map {it.convertToResponseDto() }
+    fun getAll(): List<SubscriberResponse> =
+        subscriberRepository.findAll().map { it.convertToResponseDto() }
 
     @Transactional
-    fun save(token: String, subscriberRequest: SubscriberRequest): SubscriberResponse {
-        // TODO: когда будет больше ф-ций, проверить можно ли использовать такой способ извлечения токена
-//        val authentication = SecurityContextHolder.getContext().authentication
-//        val jwt = authentication.credentials as? String ?:
-//        throw BadCredentialsException("Token cannot be null")
+    fun save(currentUser: UserEntity, subscriberRequest: SubscriberRequest): SubscriberResponse {
 
+        val user = userRepository.findById(currentUser.id!!)
+            .orElseThrow { NoSuchElementException("Запрос от несуществующего пользователя") }
 
-        if(!jwtService.isValidExpired(token)){
-            val claims = jwtService.extractClaims(token) // Получение claims из токена
-            throw ExpiredJwtException(null, claims, "Token Expired")
+        // Получаем или создаем улицу по имени
+        val street: StreetResponse = streetRepository.findByName(subscriberRequest.street)
+            ?.convertToResponseDto()
+            ?: streetService.save(StreetRequest(subscriberRequest.street))
+
+        val districtList = districtRepository.findByRegionName(street.regionName!!).orElse(null)
+        if (districtList.isEmpty()) {
+            throw NoSuchElementException("Нет районов для региона ${street.regionName}")
         }
+        val districtRes = districtList.random()
 
-        val user = userRepository.findById(UUID.fromString(jwtService.getId(token)))
-            .orElseThrow{ NoSuchElementException("Запрос от несуществующего пользователя") }
-
-
-        val tempStreet: StreetEntity? = streetRepository.findByName(subscriberRequest.street)
-
-        var street: StreetResponse? = null
-        if(tempStreet == null){
-            street = streetService.save(StreetRequest(subscriberRequest.street))
-        } else{
-            street = tempStreet.convertToResponseDto()
-        }
-
-        // TODO: если улицы не существует и она добавилась и попала в район которому не назначен почтальон,
-        //  т.е. этого региона нет в district, то летит ошибка 500
-
-        val districtRes: DistrictEntity = districtRepository.findByRegionName(street.regionName!!).orElse(null).random()
-
-        val streetEntity: StreetEntity = StreetEntity(
+        val streetEntity = StreetEntity(
             id = street.id,
             name = street.name,
             region = districtRes.region
         )
 
-        val subscriberNew = SubscriberEntity (
+        val subscriberNew = SubscriberEntity(
             user = user,
             district = districtRes,
             building = subscriberRequest.building,
             subAddress = subscriberRequest.subAddress,
             street = streetEntity
         )
+        val subscriberSave = subscriberRepository.save(subscriberNew)
 
-        val subscriberSave:SubscriberEntity = subscriberRepository.save(subscriberNew)
-
-
-        val roleSubscriber = roleRepository.findByName("SUBSCRIBER") ?:
-        throw NoSuchElementException("Роли SUBSCRIBER нет в базе данных!")
-
+        val roleSubscriber = roleRepository.findByName(Role.SUBSCRIBER)
+            ?: throw NoSuchElementException("Роли ${Role.SUBSCRIBER} нет в базе данных!")
         user.role = roleSubscriber
+
         val userSave = userRepository.save(user)
         roleSubscriber.users?.add(userSave)
 
@@ -94,56 +83,47 @@ class SubscriberService(
     }
 
     @Transactional
-    fun update(token: String, subscriber: SubscriberUpdateRequest) : SubscriberResponse {
+    fun update(currentUser: UserEntity, subscriberRequest: SubscriberUpdateRequest): SubscriberResponse {
 
+        val user = userRepository.findById(currentUser.id!!)
+            .orElseThrow { NoSuchElementException("Запрос от несуществующего пользователя") }
 
-        if(!jwtService.isValidExpired(token)){
-            val claims = jwtService.extractClaims(token) // Получение claims из токена
-            throw ExpiredJwtException(null, claims, "Token Expired")
-        }
-
-        val user = userRepository.findById(UUID.fromString(jwtService.getId(token)))
-            .orElseThrow{ NoSuchElementException("Запрос от несуществующего пользователя") }
-
+        val subscriber = user.subscriber
+            ?: throw NoSuchElementException("Subscriber profile not found for user with ID ${currentUser.id}")
 
         val tempStreet: StreetEntity = streetRepository
-            .findById(subscriber.streetId).orElse(null)
+            .findById(subscriberRequest.streetId).orElse(null)
 
         val tempDistrict: DistrictEntity = districtRepository
-            .findById(subscriber.districtId).orElse(null)
-
+            .findById(subscriberRequest.districtId).orElse(null)
 
         user.subscriber!!.street = tempStreet
         user.subscriber!!.district = tempDistrict
-        user.subscriber!!.subAddress = subscriber.subAddress
-        user.subscriber!!.building = subscriber.building
+        user.subscriber!!.subAddress = subscriberRequest.subAddress
+        user.subscriber!!.building = subscriberRequest.building
 
-        val subscriberUpdate: SubscriberEntity = subscriberRepository.save(user.subscriber!!)
+        val subscriberSave: SubscriberEntity = subscriberRepository.save(subscriber)
 
-        tempStreet.subscribers?.add(subscriberUpdate)
-        tempDistrict.subscribers?.add(subscriberUpdate)
+        tempStreet.subscribers?.add(subscriberSave)
+        tempDistrict.subscribers?.add(subscriberSave)
 
-        return subscriberUpdate.convertToResponseDto()
+        return subscriberSave.convertToResponseDto()
     }
 
 
     @Transactional
-    fun delete(token: String): SubscriberResponse {
-        if(!jwtService.isValidExpired(token))
-            throw IllegalArgumentException("Token Expired")
-
-        val userId =UUID.fromString(jwtService.getId(token))
+    fun delete(currentUser: UserEntity): SubscriberResponse {
+        val user = userRepository.findById(currentUser.id!!)
+            .orElseThrow { IllegalArgumentException("Subscriber with ID ${currentUser.id} not found") }
 
         // Найти существующего подписчика
-        val existingSubscriber = userRepository.findById(userId)
-            .orElseThrow { IllegalArgumentException("Subscriber with ID ${userId} not found") }
-
-        val sub = existingSubscriber.subscriber
+        val existingSubscriber = user.subscriber
+            ?: throw NoSuchElementException("Subscriber with ID ${currentUser.id} not found")
 
         // Удалить подписчика
-        userRepository.deleteById(userId)
+        userRepository.delete(user)
 
-        return sub!!.convertToResponseDto()
+        return existingSubscriber.convertToResponseDto()
     }
 
 

@@ -5,6 +5,7 @@ import org.bagirov.postoffice.dto.auth.RegistrationRequest
 import org.bagirov.postoffice.dto.response.PostmanResponse
 import org.bagirov.postoffice.entity.PostmanEntity
 import org.bagirov.postoffice.entity.UserEntity
+import org.bagirov.postoffice.props.Role
 import org.bagirov.postoffice.repository.PostmanRepository
 import org.bagirov.postoffice.repository.RoleRepository
 import org.bagirov.postoffice.repository.UserRepository
@@ -25,14 +26,13 @@ class PostmanService(
 ) {
 
     fun getById(id: UUID): PostmanResponse = postmanRepository.findById(id)
-        .orElseThrow{ NoSuchElementException("Postman with ID ${id} not found") }
+        .orElseThrow { NoSuchElementException("Postman with ID ${id} not found") }
         .convertToResponseDto()
 
-    fun getAll():List<PostmanResponse> = postmanRepository.findAll().map { it.convertToResponseDto() }
+    fun getAll(): List<PostmanResponse> = postmanRepository.findAll().map { it.convertToResponseDto() }
 
     @Transactional
-    fun save(request: RegistrationRequest):PostmanResponse {
-
+    fun save(request: RegistrationRequest): PostmanResponse {
         val users = userRepository.findAll()
 
         users.forEach { user ->
@@ -42,15 +42,15 @@ class PostmanService(
         }
 
         val rolePostman = roleRepository
-            .findByName("POSTMAN")
+            .findByName(Role.POSTMAN)
 
-        val user = UserEntity (
+        val user = UserEntity(
             username = request.username,
             password = passwordEncoder.encode(request.password),
             role = rolePostman!!,
             name = request.name,
             surname = request.surname,
-            patronymic =request.patronymic,
+            patronymic = request.patronymic,
             email = request.email,
             phone = request.phone,
             createdAt = LocalDateTime.now()
@@ -67,14 +67,11 @@ class PostmanService(
 
     @Transactional
     fun update(postman: PostmanEntity): PostmanResponse {
-
         // Найти существующего почтальона
         val existingPostman = postmanRepository.findById(postman.id!!)
             .orElseThrow { NoSuchElementException("Postman with ID ${postman.id} not found") }
 
-
-       postmanRepository.save(existingPostman)
-
+        postmanRepository.save(existingPostman)
 
         return existingPostman.convertToResponseDto()
     }

@@ -7,8 +7,10 @@ import mu.KotlinLogging
 import org.bagirov.postoffice.dto.request.SubscriptionRequest
 import org.bagirov.postoffice.dto.request.update.SubscriptionUpdateRequest
 import org.bagirov.postoffice.dto.response.SubscriptionResponse
+import org.bagirov.postoffice.entity.UserEntity
 import org.bagirov.postoffice.service.SubscriptionService
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
@@ -19,7 +21,6 @@ import java.util.*
 class SubscriptionController(
     private val subscriptionService: SubscriptionService
 ) {
-
     private val log = KotlinLogging.logger {}
 
     @GetMapping("/{id}")
@@ -47,9 +48,10 @@ class SubscriptionController(
         summary = "Добавление подписки",
         description = "Добавление данных о подписке"
     )
-    fun save(@RequestHeader("Authorization") token: String,  @RequestBody subscription: SubscriptionRequest): ResponseEntity<SubscriptionResponse> {
+    fun save(@AuthenticationPrincipal user: UserEntity,
+             @RequestBody subscription: SubscriptionRequest): ResponseEntity<SubscriptionResponse> {
         log.info { "Request create Subscription" }
-        return ResponseEntity.ok(subscriptionService.save(token.substring(7), subscription))
+        return ResponseEntity.ok(subscriptionService.save(user, subscription))
     }
 
     @PutMapping()
@@ -57,9 +59,10 @@ class SubscriptionController(
         summary = "Редактирование подписки по id",
         description = "Редактирование данных подписки по id"
     )
-    fun update(@RequestHeader("Authorization") token: String, @RequestBody subscription: SubscriptionUpdateRequest): ResponseEntity<SubscriptionResponse> {
+    fun update(@AuthenticationPrincipal user: UserEntity,
+               @RequestBody subscription: SubscriptionUpdateRequest): ResponseEntity<SubscriptionResponse> {
         log.info { "Request update Subscription by id: ${subscription.id}" }
-        return ResponseEntity.ok(subscriptionService.update(token.substring(7), subscription))
+        return ResponseEntity.ok(subscriptionService.update(user, subscription))
     }
 
     @DeleteMapping()

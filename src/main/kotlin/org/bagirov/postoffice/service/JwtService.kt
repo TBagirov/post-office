@@ -6,7 +6,7 @@ import io.jsonwebtoken.security.Keys
 import jakarta.annotation.PostConstruct
 import lombok.RequiredArgsConstructor
 import org.bagirov.postoffice.entity.UserEntity
-import org.bagirov.postoffice.service.props.JwtProperties
+import org.bagirov.postoffice.props.JwtProperties
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
@@ -21,16 +21,11 @@ import javax.crypto.SecretKey
 @Service
 @RequiredArgsConstructor
 class JwtService(
-    val jwtProperties: JwtProperties,
+    final val jwtProperties: JwtProperties,
     val userDetailsService: UserDetailsService,
 //    val userService: UserService,
-){
-    lateinit var key: SecretKey
-
-    @PostConstruct
-    fun init(){
-        key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.secret))
-    }
+) {
+    var key: SecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.secret))
 
     fun createAccessToken(
         user: UserEntity
@@ -46,12 +41,7 @@ class JwtService(
             .compact()
     }
 
-
-
-    fun createRefreshToken(
-        user: UserEntity
-    ): String {
-
+    fun createRefreshToken(user: UserEntity): String {
         val validity = Instant.now()
             .plus(jwtProperties.refreshExpiration, ChronoUnit.DAYS)
         return Jwts.builder()
@@ -83,7 +73,6 @@ class JwtService(
 //    }
 
 
-
 //    fun isValid(
 //        token: String?,
 //        userDetails: UserDetails
@@ -99,10 +88,9 @@ class JwtService(
 //            .after(Date()) && username == userDetails.username
 //    }
 
-
     fun extractClaims(token: String): Claims {
         return try {
-             Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
+            Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
         } catch (ex: ExpiredJwtException) {
             throw ex // Пробрасываем дальше, чтобы обработать в GlobalExceptionHandler
         } catch (ex: MalformedJwtException) {
@@ -112,9 +100,11 @@ class JwtService(
         }
     }
 
-    fun getId(token: String): String = extractClaims(token).get("id", String::class.java)
+    fun getId(token: String): String =
+        extractClaims(token).get("id", String::class.java)
 
-    fun getUsername(token: String): String = extractClaims(token).subject
+    fun getUsername(token: String): String =
+        extractClaims(token).subject
 
     fun isValid(token: String?, userDetails: UserDetails): Boolean {
         if (token == null) return false
@@ -126,7 +116,6 @@ class JwtService(
         val claims = extractClaims(token)
         return claims.expiration.after(Date())
     }
-
 
     fun getAuthentication(
         token: String
@@ -141,8 +130,6 @@ class JwtService(
             userDetails.authorities
         )
     }
-
-
 
 
 }

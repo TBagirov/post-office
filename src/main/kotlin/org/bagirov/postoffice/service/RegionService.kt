@@ -15,20 +15,22 @@ class RegionService(
     private val districtService: DistrictService
 ) {
 
-    fun getById(id: UUID): RegionResponse = regionRepository.findById(id)
-        .orElseThrow{ NoSuchElementException("Region with ID ${id} not found") }
-        .convertToResponseDto()
+    fun getById(id: UUID): RegionResponse =
+        regionRepository.findById(id)
+            .orElseThrow { NoSuchElementException("Region with ID ${id} not found") }
+            .convertToResponseDto()
 
-    fun getAll():List<RegionResponse> = regionRepository.findAll().map{ it.convertToResponseDto()}
+    fun getAll(): List<RegionResponse> =
+        regionRepository.findAll().map { it.convertToResponseDto() }
 
     @Transactional
-    fun saveEnt(region: RegionEntity):RegionEntity {
+    fun saveEnt(region: RegionEntity): RegionEntity {
 
         val regionSave = regionRepository.save(region)
 
         districtService.saveOnlyRegion(regionSave)
 
-       return region
+        return region
     }
 
     @Transactional
@@ -38,35 +40,34 @@ class RegionService(
 
     @Transactional
     fun update(region: RegionEntity): RegionResponse {
+        // Проверяем, что у региона есть ID; если нет – выбрасываем исключение
+        val regionId = region.id ?: throw IllegalArgumentException("Region id must not be null")
 
         // Найти существующий регион
-        val existingRegion = regionRepository.findById(region.id!!)
+        val existingRegion = regionRepository.findById(regionId)
             .orElseThrow { NoSuchElementException("Region with ID ${region.id} not found") }
 
         existingRegion.name = region.name
 
         // Выполнить обновление в базе данных
-        regionRepository.save(existingRegion)
+        val saveRegion = regionRepository.save(existingRegion)
 
-        return existingRegion.convertToResponseDto()
+        return saveRegion.convertToResponseDto()
     }
 
-    // TODO: удаляет, но в ответ 500 код, разобраться почему
     @Transactional
     fun delete(id: UUID): RegionResponse {
         // Найти существующий регион
         val existingRegion = regionRepository.findById(id)
             .orElseThrow { NoSuchElementException("Region with ID ${id} not found") }
 
-        // Обнуляем ссылку для каждой улицы, чтобы удалить связь с регионом
-        existingRegion.streets?.forEach { street ->
-            street.region = null
-        }
-
+        // Для каждой улицы сбрасываем связь с регионом
+        existingRegion.streets?.map { it.region = null }
+        // Очищаем коллекцию, чтобы Hibernate не пытался сохранить старые связи
         existingRegion.streets?.clear()
 
         // Удалить регион
-        regionRepository.deleteById(id)
+        regionRepository.delete(existingRegion)
 
         return existingRegion.convertToResponseDto()
     }

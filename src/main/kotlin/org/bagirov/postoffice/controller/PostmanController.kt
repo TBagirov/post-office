@@ -18,7 +18,6 @@ import java.util.*
 class PostmanController (
     private val postmanService: PostmanService
 ){
-
     private val log = KotlinLogging.logger {}
 
     @GetMapping("/{id}")

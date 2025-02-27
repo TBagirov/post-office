@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*
 class AuthenticationController(
     private val authenticationService: AuthenticationService
 ) {
-
     private val logger = KotlinLogging.logger {}
 
     @PostMapping("/authorization")

@@ -18,7 +18,7 @@ data class PublicationEntity(
     var title: String,
 
     @ManyToOne()
-    @JoinColumn(name = "publication_type_id", nullable = false)
+    @JoinColumn(name = "publication_type_id")
     var publicationType: PublicationTypeEntity?,
 
     @Column(name="price", nullable = false)

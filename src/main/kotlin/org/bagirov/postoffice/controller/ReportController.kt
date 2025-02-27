@@ -21,7 +21,6 @@ import java.util.*
 class ReportController (
     private val reportService: ReportService
 ){
-
     private val log = KotlinLogging.logger {}
 
     @GetMapping("/subscriptions")

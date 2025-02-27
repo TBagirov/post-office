@@ -20,7 +20,6 @@ import java.util.*
 class PublicationController(
     val publicationService: PublicationService
 ) {
-
     private val log = KotlinLogging.logger {}
 
     @GetMapping("/{id}")

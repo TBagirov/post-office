@@ -19,7 +19,6 @@ import java.util.*
 class StreetController(
     private val streetService: StreetService
 ) {
-
     private val log = KotlinLogging.logger {}
 
     @GetMapping("/{id}")

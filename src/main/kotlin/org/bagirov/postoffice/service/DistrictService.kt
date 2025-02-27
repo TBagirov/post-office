@@ -24,19 +24,19 @@ class DistrictService(
 ) {
 
     fun getById(id: UUID): DistrictResponse = districtRepository.findById(id)
-        .orElseThrow{ NoSuchElementException("District with ID ${id} not found") }
+        .orElseThrow { NoSuchElementException("District with ID ${id} not found") }
         .convertToResponseDto()
 
-    fun getAll():List<DistrictResponse> = districtRepository.findAll().map{ it.convertToResponseDto() }
+    fun getAll(): List<DistrictResponse> = districtRepository.findAll().map { it.convertToResponseDto() }
 
     @Transactional
-    fun save(districtRequest: DistrictRequest) : DistrictResponse {
+    fun save(districtRequest: DistrictRequest): DistrictResponse {
 
         val tempRegion: RegionEntity? = regionRepository.findById(districtRequest.regionId)
-            .orElseThrow{ NoSuchElementException("District with ID ${districtRequest.regionId} not found") }
+            .orElseThrow { NoSuchElementException("District with ID ${districtRequest.regionId} not found") }
 
         val tempPostman: PostmanEntity? = postmanRepository.findById(districtRequest.postmanId)
-            .orElseThrow{NoSuchElementException("Postman with ID ${districtRequest.postmanId} not found")}
+            .orElseThrow { NoSuchElementException("Postman with ID ${districtRequest.postmanId} not found") }
 
         val district: DistrictEntity = DistrictEntity(
             region = tempRegion,
@@ -51,15 +51,13 @@ class DistrictService(
         return district.convertToResponseDto()
     }
 
-    fun saveOnlyRegion(region: RegionEntity){
+    @Transactional
+    fun saveOnlyRegion(region: RegionEntity) {
         districtRepository.save(DistrictEntity(region = region))
     }
 
-
-
     @Transactional
     fun update(district: DistrictUpdateRequest): DistrictResponse {
-
         // Найти существующее отношение почтальонов к районам
         val existingDistrict = districtRepository.findById(district.id)
             .orElseThrow { NoSuchElementException("District with ID ${district.id} not found") }

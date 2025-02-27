@@ -31,8 +31,6 @@ class GlobalExceptionHandler {
             message = ex.message,
             status = HttpStatus.UNAUTHORIZED.value()
         )
-
-
         return ResponseEntity(errorResponse, HttpStatus.UNAUTHORIZED)
     }
 
@@ -54,7 +52,6 @@ class GlobalExceptionHandler {
     fun handleJwtException(ex: JwtException): ResponseEntity<ErrorResponse> {
         log.error {"JwtException:  ${ex.printStackTrace()}" }
 
-
         val errorResponse = ErrorResponse(
             error = "Error with the token",
             message = ex.message,
@@ -67,7 +64,6 @@ class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
         log.error {"IllegalArgumentException:  ${ex.printStackTrace()}" }
-
 
         val errorResponse = ErrorResponse(
             error = "Error from an invalid argument",

@@ -55,7 +55,8 @@ data class UserEntity (
 
 ) : UserDetails{
 
-    override fun getAuthorities(): Collection<GrantedAuthority> = listOf(SimpleGrantedAuthority(role.name))
+    override fun getAuthorities(): Collection<GrantedAuthority> =
+        listOf(SimpleGrantedAuthority(role.name))
 
     override fun getPassword(): String {
         return this.password

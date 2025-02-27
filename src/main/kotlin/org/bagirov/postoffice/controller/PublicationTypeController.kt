@@ -18,7 +18,6 @@ import java.util.*
 class PublicationTypeController(
     val publicationTypeService: PublicationTypeService
 ) {
-
     private val log = KotlinLogging.logger {}
 
     @GetMapping("/{id}")

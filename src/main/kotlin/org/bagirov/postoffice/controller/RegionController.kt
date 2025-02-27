@@ -18,7 +18,6 @@ import java.util.*
 class RegionController(
     val regionService: RegionService
 ) {
-
     private val log = KotlinLogging.logger {}
 
     @GetMapping("/{id}")

@@ -39,13 +39,12 @@ class AuthenticationService(
         }
         authenticationManager.authenticate(UsernamePasswordAuthenticationToken(request.username, request.password))
         val user = userRepository.findByUsername(request.username)
-            .orElseThrow { throw NoSuchElementException("пользователя не существует")}
-
+            .orElseThrow { throw NoSuchElementException("пользователя не существует") }
 
         val accessToken = jwtService.createAccessToken(user)
         val refreshToken = jwtService.createRefreshToken(user)
 
-        val refreshTokenEntity = RefreshTokenEntity (
+        val refreshTokenEntity = RefreshTokenEntity(
             user = user,
             token = refreshToken
         )
@@ -75,17 +74,16 @@ class AuthenticationService(
             }
         }
 
-
         val roleGuest = roleRepository
             .findByName("GUEST")
 
-        val user = UserEntity (
+        val user = UserEntity(
             username = request.username,
             password = passwordEncoder.encode(request.password),
             role = roleGuest!!,
             name = request.name,
             surname = request.surname,
-            patronymic =request.patronymic,
+            patronymic = request.patronymic,
             email = request.email,
             phone = request.phone,
             createdAt = LocalDateTime.now()
@@ -114,8 +112,8 @@ class AuthenticationService(
 
     fun logout(token: String, response: HttpServletResponse): Map<String, String> {
         val refreshTokensEntity = refreshTokenRepository.findAllByToken(token)
-        refreshTokensEntity.forEach {
-            refreshToken -> refreshTokenRepository.delete(refreshToken)
+        refreshTokensEntity.forEach { refreshToken ->
+            refreshTokenRepository.delete(refreshToken)
         }
 
         val cookie = Cookie("refreshToken", null)
@@ -134,7 +132,7 @@ class AuthenticationService(
 
         val username = jwtService.getUsername(userToken)
         val user = userRepository.findByUsername(username)
-            .orElseThrow(){throw NoSuchElementException("Пользователя с таким username(${username}) больше нет")}
+            .orElseThrow() { throw NoSuchElementException("Пользователя с таким username(${username}) больше нет") }
 
         var isValidToken = false
 
