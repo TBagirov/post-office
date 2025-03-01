@@ -37,7 +37,9 @@ class AuthenticationService(
         if (!isValidAuthenticationCredentials(request)) {
             throw IllegalArgumentException("Поля логин и/или пароль пустые")
         }
+
         authenticationManager.authenticate(UsernamePasswordAuthenticationToken(request.username, request.password))
+
         val user = userRepository.findByUsername(request.username)
             .orElseThrow { throw NoSuchElementException("пользователя не существует") }
 

@@ -4,9 +4,9 @@ spring:
 
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/post_office
+    url: jdbc:postgresql://db:5432/post-office
     username: postgres
-    password: PosTer231
+    password: ajlksdhxfkjlahsdfjk
     driver-class-name: org.postgresql.Driver
 
   jpa:

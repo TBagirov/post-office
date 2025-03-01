@@ -11,6 +11,7 @@ import org.bagirov.postoffice.repository.PublicationRepository
 import org.bagirov.postoffice.repository.SubscriptionRepository
 import org.bagirov.postoffice.repository.UserRepository
 import org.bagirov.postoffice.utill.convertToResponseDto
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -37,7 +38,8 @@ class SubscriptionService(
         val user = userRepository.findById(currentUser.id!!)
             .orElseThrow { IllegalArgumentException("Запрос от несуществующего пользователя") }
 
-        val tempSubscriber = user.subscriber ?: throw IllegalArgumentException("User is not a subscriber")
+        val tempSubscriber = user.subscriber ?: throw AccessDeniedException("User is not a subscriber")
+
         val tempPublication: PublicationEntity =
             publicationRepository.findById(subscriptionRequest.publicationId).orElse(null)
 

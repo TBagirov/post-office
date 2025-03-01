@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import java.nio.file.AccessDeniedException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -56,6 +57,18 @@ class GlobalExceptionHandler {
             error = "Error with the token",
             message = ex.message,
             status = HttpStatus.INTERNAL_SERVER_ERROR.value()
+        )
+        return ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+    // Перехватываем JwtException
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleJwtException(ex: AccessDeniedException): ResponseEntity<ErrorResponse> {
+        log.error {"JwtException:  ${ex.printStackTrace()}" }
+
+        val errorResponse = ErrorResponse(
+            error = "Access denied",
+            message = ex.message,
+            status = HttpStatus.FORBIDDEN.value()
         )
         return ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR)
     }
