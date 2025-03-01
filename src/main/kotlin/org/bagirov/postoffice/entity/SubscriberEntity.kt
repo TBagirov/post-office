@@ -1,6 +1,7 @@
 package org.bagirov.postoffice.entity
 
 import jakarta.persistence.*
+import org.hibernate.proxy.HibernateProxy
 import java.util.*
 
 @Entity
@@ -9,15 +10,6 @@ data class SubscriberEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     var id: UUID? = null,
-
-    @Column(name="name", nullable = false)
-    var name: String,
-
-    @Column(name="surname", nullable = false)
-    var surname: String,
-
-    @Column(name="patronymic", nullable = false)
-    var patronymic: String,
 
     @ManyToOne
     @JoinColumn(name="district_id", referencedColumnName = "id")
@@ -34,38 +26,32 @@ data class SubscriberEntity(
     var subAddress: String? = null,
 
     @OneToMany(mappedBy = "subscriber")
-    var subscriptions: MutableSet<SubscriptionEntity>? = null
+    var subscriptions: MutableSet<SubscriptionEntity>? = null,
+
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false, unique = true)
+    var user: UserEntity
+
 ){
-    fun getFio() = listOfNotNull(surname, name, patronymic)
-        .joinToString(" ")
-
-    override fun equals(other: Any?): Boolean {
+    final override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
+        if (other == null) return false
+        val oEffectiveClass =
+            if (other is HibernateProxy) other.hibernateLazyInitializer.persistentClass else other.javaClass
+        val thisEffectiveClass =
+            if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass else this.javaClass
+        if (thisEffectiveClass != oEffectiveClass) return false
         other as SubscriberEntity
 
-        if (id != other.id) return false
-        if (name != other.name) return false
-        if (surname != other.surname) return false
-        if (patronymic != other.patronymic) return false
-        if (district != other.district) return false
-        if (street != other.street) return false
-        if (building != other.building) return false
-        if (subAddress != other.subAddress) return false
-
-        return true
+        return id != null && id == other.id
     }
 
-    override fun hashCode(): Int {
-        var result = id?.hashCode() ?: 0
-        result = 31 * result + name.hashCode()
-        result = 31 * result + surname.hashCode()
-        result = 31 * result + patronymic.hashCode()
-        result = 31 * result + district.hashCode()
-        result = 31 * result + street.hashCode()
-        result = 31 * result + building.hashCode()
-        result = 31 * result + (subAddress?.hashCode() ?: 0)
-        return result
+    final override fun hashCode(): Int =
+        if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass.hashCode() else javaClass.hashCode()
+
+    @Override
+    override fun toString(): String {
+        return this::class.simpleName + "(  id = $id   ,   district = $district   ,   street = $street   ,   building = $building   ,   subAddress = $subAddress   ,   user = $user )"
     }
+
 }

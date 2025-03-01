@@ -1,13 +1,16 @@
 package org.bagirov.postoffice.service
+
 import org.bagirov.postoffice.dto.request.StreetRequest
 import org.bagirov.postoffice.dto.request.SubscriberRequest
 import org.bagirov.postoffice.dto.request.update.SubscriberUpdateRequest
 import org.bagirov.postoffice.dto.response.StreetResponse
 import org.bagirov.postoffice.dto.response.SubscriberResponse
-import org.bagirov.postoffice.entity.*
-import org.bagirov.postoffice.repository.DistrictRepository
-import org.bagirov.postoffice.repository.StreetRepository
-import org.bagirov.postoffice.repository.SubscriberRepository
+import org.bagirov.postoffice.entity.DistrictEntity
+import org.bagirov.postoffice.entity.StreetEntity
+import org.bagirov.postoffice.entity.SubscriberEntity
+import org.bagirov.postoffice.entity.UserEntity
+import org.bagirov.postoffice.props.Role
+import org.bagirov.postoffice.repository.*
 import org.bagirov.postoffice.utill.convertToResponseDto
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,95 +22,107 @@ class SubscriberService(
     private val districtRepository: DistrictRepository,
     private val streetRepository: StreetRepository,
     private val streetService: StreetService,
+    private val userRepository: UserRepository,
+    private val roleRepository: RoleRepository,
 ) {
 
-    fun getById(id: UUID): SubscriberResponse = subscriberRepository.findById(id).orElse(null).convertToResponseDto()
+    fun getById(id: UUID): SubscriberResponse =
+        subscriberRepository
+            .findById(id)
+            .orElseThrow { NoSuchElementException("Subscriber with ID ${id} not found") }
+            .convertToResponseDto()
 
-    fun getAll():List<SubscriberResponse> = subscriberRepository.findAll().map {it.convertToResponseDto() }
+    fun getAll(): List<SubscriberResponse> =
+        subscriberRepository.findAll().map { it.convertToResponseDto() }
 
     @Transactional
-    fun save(subscriberRequest: SubscriberRequest): SubscriberResponse {
+    fun save(currentUser: UserEntity, subscriberRequest: SubscriberRequest): SubscriberResponse {
 
-        val tempStreet: StreetEntity? = streetRepository.findByName(subscriberRequest.street)
+        val user = userRepository.findById(currentUser.id!!)
+            .orElseThrow { NoSuchElementException("Запрос от несуществующего пользователя") }
 
-        var street: StreetResponse? = null
-        if(tempStreet == null){
-            street = streetService.save(StreetRequest(subscriberRequest.street))
-        } else{
-            street = tempStreet.convertToResponseDto()
+        // Получаем или создаем улицу по имени
+        val street: StreetResponse = streetRepository.findByName(subscriberRequest.street)
+            ?.convertToResponseDto()
+            ?: streetService.save(StreetRequest(subscriberRequest.street))
+
+        val districtList = districtRepository.findByRegionName(street.regionName!!).orElse(null)
+        if (districtList.isEmpty()) {
+            throw NoSuchElementException("Нет районов для региона ${street.regionName}")
         }
+        val districtRes = districtList.random()
 
-        // TODO: если улицы не существует и она добавилась и попала в район которому не назначен почтальон,
-        //  т.е. этого региона нет в district, то летит ошибка 500
-        val districtRes: DistrictEntity = districtRepository.findByRegionName(street.regionName!!).orElse(null).random()
-
-        val streetEntity: StreetEntity = StreetEntity(
+        val streetEntity = StreetEntity(
             id = street.id,
             name = street.name,
             region = districtRes.region
         )
 
         val subscriberNew = SubscriberEntity(
-            name = subscriberRequest.name,
-            surname = subscriberRequest.surname,
-            patronymic = subscriberRequest.patronymic,
+            user = user,
             district = districtRes,
             building = subscriberRequest.building,
             subAddress = subscriberRequest.subAddress,
             street = streetEntity
         )
+        val subscriberSave = subscriberRepository.save(subscriberNew)
 
-        val subscriberSave:SubscriberEntity = subscriberRepository.save(subscriberNew)
+        val roleSubscriber = roleRepository.findByName(Role.SUBSCRIBER)
+            ?: throw NoSuchElementException("Роли ${Role.SUBSCRIBER} нет в базе данных!")
+        user.role = roleSubscriber
+
+        val userSave = userRepository.save(user)
+        roleSubscriber.users?.add(userSave)
 
         districtRes.subscribers?.add(subscriberSave)
         streetEntity.subscribers?.add(subscriberSave)
+        userSave.subscriber = subscriberSave
 
         return subscriberSave.convertToResponseDto()
     }
 
     @Transactional
-    fun update(subscriber: SubscriberUpdateRequest) : SubscriberResponse {
+    fun update(currentUser: UserEntity, subscriberRequest: SubscriberUpdateRequest): SubscriberResponse {
 
-        // Найти существующего подписчика
-        val existingSubscriber = subscriberRepository.findById(subscriber.id)
-            .orElseThrow { IllegalArgumentException("Subscriber with ID ${subscriber.id} not found") }
+        val user = userRepository.findById(currentUser.id!!)
+            .orElseThrow { NoSuchElementException("Запрос от несуществующего пользователя") }
 
+        val subscriber = user.subscriber
+            ?: throw NoSuchElementException("Subscriber profile not found for user with ID ${currentUser.id}")
 
         val tempStreet: StreetEntity = streetRepository
-            .findById(subscriber.streetId).orElse(null)
+            .findById(subscriberRequest.streetId).orElse(null)
 
         val tempDistrict: DistrictEntity = districtRepository
-            .findById(subscriber.districtId).orElse(null)
+            .findById(subscriberRequest.districtId).orElse(null)
 
+        user.subscriber!!.street = tempStreet
+        user.subscriber!!.district = tempDistrict
+        user.subscriber!!.subAddress = subscriberRequest.subAddress
+        user.subscriber!!.building = subscriberRequest.building
 
-        existingSubscriber.street = tempStreet
-        existingSubscriber.district = tempDistrict
-        existingSubscriber.name = subscriber.name
-        existingSubscriber.surname = subscriber.surname
-        existingSubscriber.patronymic = subscriber.patronymic
-        existingSubscriber.subAddress = subscriber.subAddress
-        existingSubscriber.building = subscriber.building
+        val subscriberSave: SubscriberEntity = subscriberRepository.save(subscriber)
 
-        val subscriberUpdate: SubscriberEntity = subscriberRepository.save(existingSubscriber)
+        tempStreet.subscribers?.add(subscriberSave)
+        tempDistrict.subscribers?.add(subscriberSave)
 
-        tempStreet.subscribers?.add(subscriberUpdate)
-        tempDistrict.subscribers?.add(subscriberUpdate)
-
-        return subscriberUpdate.convertToResponseDto()
+        return subscriberSave.convertToResponseDto()
     }
 
 
     @Transactional
-    fun delete(id: UUID): SubscriberResponse {
+    fun delete(currentUser: UserEntity): SubscriberResponse {
+        val user = userRepository.findById(currentUser.id!!)
+            .orElseThrow { IllegalArgumentException("Subscriber with ID ${currentUser.id} not found") }
 
-        // Найти существующее издание
-        val existingPublication = subscriberRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Subscriber with ID ${id} not found") }
+        // Найти существующего подписчика
+        val existingSubscriber = user.subscriber
+            ?: throw NoSuchElementException("Subscriber with ID ${currentUser.id} not found")
 
-        // Удалить издание
-        subscriberRepository.deleteById(id)
+        // Удалить подписчика
+        userRepository.delete(user)
 
-        return existingPublication.convertToResponseDto()
+        return existingSubscriber.convertToResponseDto()
     }
 
 

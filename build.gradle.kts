@@ -32,10 +32,22 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation ("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("io.github.microutils:kotlin-logging:3.0.5")
+//    implementation ("org.springframework.boot:spring-boot-starter-webflux")
+
+    // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+
+    implementation("io.github.microutils:kotlin-logging:3.0.5")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.3")
     implementation("org.apache.poi:poi-ooxml:5.2.3")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    testImplementation("org.springframework.security:spring-security-test")
 
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")

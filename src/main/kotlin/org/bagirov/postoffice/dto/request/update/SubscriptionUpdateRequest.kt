@@ -5,7 +5,6 @@ import java.util.*
 
 data class SubscriptionUpdateRequest (
     val id: UUID,
-    val subscriberId: UUID,
     val publicationId: UUID,
     val startDate: LocalDateTime,
     val duration: Int
