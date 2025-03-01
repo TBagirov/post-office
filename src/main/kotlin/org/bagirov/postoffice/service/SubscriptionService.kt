@@ -5,14 +5,13 @@ import org.bagirov.postoffice.dto.request.SubscriptionRequest
 import org.bagirov.postoffice.dto.request.update.SubscriptionUpdateRequest
 import org.bagirov.postoffice.dto.response.SubscriptionResponse
 import org.bagirov.postoffice.entity.PublicationEntity
-import org.bagirov.postoffice.entity.SubscriberEntity
 import org.bagirov.postoffice.entity.SubscriptionEntity
+import org.bagirov.postoffice.entity.UserEntity
 import org.bagirov.postoffice.repository.PublicationRepository
-import org.bagirov.postoffice.repository.SubscriberRepository
 import org.bagirov.postoffice.repository.SubscriptionRepository
+import org.bagirov.postoffice.repository.UserRepository
 import org.bagirov.postoffice.utill.convertToResponseDto
-import org.hibernate.boot.model.naming.Identifier
-import org.hibernate.boot.spi.InFlightMetadataCollector.DuplicateSecondaryTableException
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -21,21 +20,31 @@ import java.util.*
 @Service
 class SubscriptionService(
     private val subscriptionRepository: SubscriptionRepository,
-    private val subscriberRepository: SubscriberRepository,
     private val publicationRepository: PublicationRepository,
+    private val userRepository: UserRepository,
 ) {
 
-    fun getById(id: UUID): SubscriptionResponse = subscriptionRepository.findById(id).orElse(null).convertToResponseDto()
+    fun getById(id: UUID): SubscriptionResponse =
+        subscriptionRepository.findById(id)
+            .orElseThrow { NoSuchElementException("Subscription with ID ${id} not found") }
+            .convertToResponseDto()
 
-    fun getAll():List<SubscriptionResponse> = subscriptionRepository.findAll().map{ it.convertToResponseDto()}
+    fun getAll(): List<SubscriptionResponse> =
+        subscriptionRepository.findAll().map { it.convertToResponseDto() }
 
     @Transactional
-    fun save(subscriptionRequest: SubscriptionRequest): SubscriptionResponse {
-        val tempSubscriber: SubscriberEntity = subscriberRepository.findById(subscriptionRequest.subscriberId).orElse(null)
-        val tempPublication: PublicationEntity = publicationRepository.findById(subscriptionRequest.publicationId).orElse(null)
+    fun save(currentUser: UserEntity, subscriptionRequest: SubscriptionRequest): SubscriptionResponse {
 
-        if(subscriptionRepository.findBySubscriberAndPublication(tempSubscriber, tempPublication) != null)
-            throw DuplicateSecondaryTableException(Identifier("subscriptions", true))
+        val user = userRepository.findById(currentUser.id!!)
+            .orElseThrow { IllegalArgumentException("Запрос от несуществующего пользователя") }
+
+        val tempSubscriber = user.subscriber ?: throw AccessDeniedException("User is not a subscriber")
+
+        val tempPublication: PublicationEntity =
+            publicationRepository.findById(subscriptionRequest.publicationId).orElse(null)
+
+        if (subscriptionRepository.findBySubscriberAndPublication(tempSubscriber, tempPublication) != null)
+            throw IllegalArgumentException("Subscriber already has a subscription to this publication")
 
         val subscriptionNew = SubscriptionEntity(
             subscriber = tempSubscriber,
@@ -54,22 +63,25 @@ class SubscriptionService(
     }
 
     @Transactional
-    fun update(subscription: SubscriptionUpdateRequest) : SubscriptionResponse {
+    fun update(currentUser: UserEntity, subscription: SubscriptionUpdateRequest): SubscriptionResponse {
 
-        // Найти существующего подписчика
+        val user = userRepository.findById(currentUser.id!!)
+            .orElseThrow { NoSuchElementException("Запрос от несуществующего пользователя") }
+
+        // Найти подписку
         val existingSubscription = subscriptionRepository.findById(subscription.id)
-            .orElseThrow { IllegalArgumentException("Subscription with ID ${subscription.id} not found") }
+            .orElseThrow { NoSuchElementException("Subscription with ID ${subscription.id} not found") }
 
-        val tempSubscriber: SubscriberEntity = subscriberRepository
-            .findById(subscription.subscriberId).orElse(null)
-
+        val tempSubscriber = user.subscriber!!
         val tempPublication: PublicationEntity = publicationRepository
             .findById(subscription.publicationId).orElse(null)
 
-        existingSubscription.publication = tempPublication
-        existingSubscription.subscriber = tempSubscriber
-        existingSubscription.startDate = subscription.startDate
-        existingSubscription.duration = subscription.duration
+        existingSubscription.apply {
+            publication = tempPublication
+            subscriber = tempSubscriber
+            startDate = subscription.startDate
+            duration = subscription.duration
+        }
 
         val subscriptionUpdate: SubscriptionEntity = subscriptionRepository.save(existingSubscription)
 
@@ -84,10 +96,10 @@ class SubscriptionService(
 
         // Найти существующую подписку
         val existingSubscription = subscriptionRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("Subscription with ID ${id} not found") }
+            .orElseThrow { NoSuchElementException("Subscription with ID ${id} not found") }
 
         // Удалить издание
-        subscriptionRepository.deleteById(id)
+        subscriptionRepository.delete(existingSubscription)
 
         return existingSubscription.convertToResponseDto()
     }

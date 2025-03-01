@@ -2,6 +2,7 @@ package org.bagirov.postoffice.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import mu.KotlinLogging
 import org.bagirov.postoffice.dto.request.PublicationTypeRequest
 import org.bagirov.postoffice.dto.response.PublicationTypeResponse
 import org.bagirov.postoffice.entity.PublicationTypeEntity
@@ -17,12 +18,15 @@ import java.util.*
 class PublicationTypeController(
     val publicationTypeService: PublicationTypeService
 ) {
+    private val log = KotlinLogging.logger {}
+
     @GetMapping("/{id}")
     @Operation(
         summary = "Получение типа издания по id",
         description = "Получение данных типа издания по id"
     )
     fun getPublicationType(@PathVariable id: UUID): ResponseEntity<PublicationTypeResponse> {
+        log.info {"Request get PublicationType by id: $id"}
         return ResponseEntity.ok(publicationTypeService.getById(id))
     }
 
@@ -31,7 +35,10 @@ class PublicationTypeController(
         summary = "Получение всех типов издания",
         description = "Получение данных о всех типах издания"
     )
-    fun getAll():ResponseEntity<List<PublicationTypeResponse>> = ResponseEntity.ok(publicationTypeService.getAll())
+    fun getAll():ResponseEntity<List<PublicationTypeResponse>> {
+        log.info {"Request get all PublicationType"}
+        return ResponseEntity.ok(publicationTypeService.getAll())
+    }
 
     @PostMapping()
     @Operation(
@@ -39,6 +46,7 @@ class PublicationTypeController(
         description = "Добавление данных о типе издания"
     )
     fun save(@RequestBody publicationType: PublicationTypeRequest): ResponseEntity<PublicationTypeResponse> {
+        log.info {"Request create PublicationType"}
         return ResponseEntity.ok(publicationTypeService.save(publicationType))
     }
 
@@ -48,6 +56,7 @@ class PublicationTypeController(
         description = "Редактирование данных издания по id"
     )
     fun update(@RequestBody publicationType: PublicationTypeEntity): ResponseEntity<PublicationTypeResponse> {
+        log.info {"Request update PublicationType by id ${publicationType.id}"}
         return ResponseEntity.ok(publicationTypeService.update(publicationType))
     }
 
@@ -58,6 +67,7 @@ class PublicationTypeController(
                 "удаленный тип издания в записях других таблиц изменится на null"
     )
     fun delete(@RequestParam id: UUID): ResponseEntity<PublicationTypeResponse> {
+        log.info {"Request delete PublicationType by id $id"}
         return ResponseEntity.ok(publicationTypeService.delete(id))
     }
 

@@ -13,6 +13,7 @@ import org.bagirov.postoffice.repository.RegionRepository
 import org.bagirov.postoffice.utill.convertToResponseDto
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.NoSuchElementException
 import java.util.UUID
 
 @Service
@@ -22,19 +23,22 @@ class DistrictService(
     private val postmanRepository: PostmanRepository
 ) {
 
-    fun getById(id: UUID): DistrictResponse = districtRepository.findById(id).orElse(null).convertToResponseDto()
+    fun getById(id: UUID): DistrictResponse = districtRepository.findById(id)
+        .orElseThrow { NoSuchElementException("District with ID ${id} not found") }
+        .convertToResponseDto()
 
-    fun getAll():List<DistrictResponse> = districtRepository.findAll().map{ it.convertToResponseDto() }
+    fun getAll(): List<DistrictResponse> = districtRepository.findAll().map { it.convertToResponseDto() }
 
     @Transactional
-    fun save(districtRequest: DistrictRequest) : DistrictResponse {
+    fun save(districtRequest: DistrictRequest): DistrictResponse {
+
         val tempRegion: RegionEntity? = regionRepository.findById(districtRequest.regionId)
-            .orElseThrow{IllegalArgumentException("")}
+            .orElseThrow { NoSuchElementException("District with ID ${districtRequest.regionId} not found") }
 
         val tempPostman: PostmanEntity? = postmanRepository.findById(districtRequest.postmanId)
-            .orElseThrow{IllegalArgumentException("")}
+            .orElseThrow { NoSuchElementException("Postman with ID ${districtRequest.postmanId} not found") }
 
-        val district: DistrictEntity = DistrictEntity(
+        val district = DistrictEntity(
             region = tempRegion,
             postman = tempPostman
         )
@@ -48,11 +52,15 @@ class DistrictService(
     }
 
     @Transactional
-    fun update(district: DistrictUpdateRequest): DistrictResponse {
+    fun saveOnlyRegion(region: RegionEntity) {
+        districtRepository.save(DistrictEntity(region = region))
+    }
 
+    @Transactional
+    fun update(district: DistrictUpdateRequest): DistrictResponse {
         // Найти существующее отношение почтальонов к районам
-        val existingDistrict = districtRepository.findById(district.id!!)
-            .orElseThrow { IllegalArgumentException("District with ID ${district.id} not found") }
+        val existingDistrict = districtRepository.findById(district.id)
+            .orElseThrow { NoSuchElementException("District with ID ${district.id} not found") }
 
         val tempRegion: RegionEntity? = regionRepository.findById(district.regionId).orElse(null)
         val tempPostman: PostmanEntity? = postmanRepository.findById(district.postmanId).orElse(null)
@@ -74,7 +82,7 @@ class DistrictService(
     fun delete(id: UUID): DistrictResponse {
         // Найти существующее отношение почтальонов к районам
         val existingDistrict = districtRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("District with ID $id not found") }
+            .orElseThrow { NoSuchElementException("District with ID $id not found") }
 
         // Удалить отношение почтальонов к районам
         districtRepository.deleteById(id)

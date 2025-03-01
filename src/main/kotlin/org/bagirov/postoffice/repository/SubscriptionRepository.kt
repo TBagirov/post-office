@@ -7,12 +7,9 @@ import org.bagirov.postoffice.entity.PublicationEntity
 import org.bagirov.postoffice.entity.SubscriberEntity
 import org.bagirov.postoffice.entity.SubscriptionEntity
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 import java.util.*
 
 @Repository
@@ -30,7 +27,7 @@ interface SubscriptionRepository: JpaRepository<SubscriptionEntity, UUID> {
             sub.id as subscriptionId,
             s.id as subscriberId,
             p.id AS publicationId,
-            CONCAT(s.surname, ' ', s.name, ' ', s.patronymic) AS fioSubscriber,
+            CONCAT(u.surname, ' ', u.name, ' ', u.patronymic) AS fioSubscriber,
             p.title AS titlePublication,
             sub.start_date AS startDateSubscription,
             sub.start_date + INTERVAL '1 month' * sub.duration AS endDateSubscription,
@@ -42,6 +39,8 @@ interface SubscriptionRepository: JpaRepository<SubscriptionEntity, UUID> {
             subscriptions sub
         JOIN 
             subscribers s ON sub.subscriber_id = s.id
+        JOIN 
+            users u on s.user_id = u.id
         LEFT JOIN 
             publications p ON sub.publication_id = p.id
         """,
